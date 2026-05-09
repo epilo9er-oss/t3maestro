@@ -268,8 +268,8 @@ const make = Effect.gen(function* () {
   });
 
   const resolveThread = Effect.fnUntraced(function* (threadId: ThreadId) {
-    return yield* projectionSnapshotQuery
-      .getThreadDetailById(threadId)
+    return yield* orchestrationEngine
+      .getThreadById(threadId)
       .pipe(Effect.map(Option.getOrUndefined));
   });
 

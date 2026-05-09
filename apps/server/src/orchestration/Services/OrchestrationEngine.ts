@@ -10,9 +10,14 @@
  *
  * @module OrchestrationEngineService
  */
-import type { OrchestrationCommand, OrchestrationEvent } from "@t3tools/contracts";
+import type {
+  OrchestrationCommand,
+  OrchestrationEvent,
+  OrchestrationThread,
+} from "@t3tools/contracts";
 import * as Context from "effect/Context";
 import type * as Effect from "effect/Effect";
+import type * as Option from "effect/Option";
 import type * as Stream from "effect/Stream";
 
 import type { OrchestrationDispatchError } from "../Errors.ts";
@@ -51,6 +56,21 @@ export interface OrchestrationEngineShape {
    * This is a hot runtime stream (new events only), not a historical replay.
    */
   readonly streamDomainEvents: Stream.Stream<OrchestrationEvent>;
+
+  /**
+   * Get a thread by ID from the in-memory command read model.
+   *
+   * Returns the latest thread state from the orchestration engine's in-memory
+   * read model, which is updated synchronously as commands are dispatched.
+   * This is preferred over ProjectionSnapshotQuery.getThreadDetailById when
+   * you need the absolute latest state without waiting for projection updates.
+   *
+   * @param threadId - The thread ID to look up.
+   * @returns Effect containing the thread if found, or None if not found.
+   */
+  readonly getThreadById: (
+    threadId: string,
+  ) => Effect.Effect<Option.Option<OrchestrationThread>, never>;
 }
 
 /**

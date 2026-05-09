@@ -307,9 +307,15 @@ const makeOrchestrationEngine = Effect.gen(function* () {
       return yield* Deferred.await(result);
     });
 
+  const getThreadById: OrchestrationEngineShape["getThreadById"] = (threadId) =>
+    Effect.sync(() =>
+      Option.fromUndefinedOr(commandReadModel.threads.find((thread) => thread.id === threadId)),
+    );
+
   return {
     readEvents,
     dispatch,
+    getThreadById,
     // Each access creates a fresh PubSub subscription so that multiple
     // consumers (wsServer, ProviderRuntimeIngestion, CheckpointReactor, etc.)
     // each independently receive all domain events.
