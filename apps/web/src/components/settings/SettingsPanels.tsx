@@ -424,6 +424,9 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.confirmThreadDelete !== DEFAULT_UNIFIED_SETTINGS.confirmThreadDelete
         ? ["Delete confirmation"]
         : []),
+      ...(settings.terminalFontFamily !== DEFAULT_UNIFIED_SETTINGS.terminalFontFamily
+        ? ["Terminal font"]
+        : []),
       ...(isGitWritingModelDirty ? ["Git writing model"] : []),
     ],
     [
@@ -431,6 +434,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       settings.autoOpenPlanSidebar,
       settings.confirmThreadArchive,
       settings.confirmThreadDelete,
+      settings.terminalFontFamily,
       settings.addProjectBaseDirectory,
       settings.defaultThreadEnvMode,
       settings.diffIgnoreWhitespace,
@@ -466,6 +470,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       addProjectBaseDirectory: DEFAULT_UNIFIED_SETTINGS.addProjectBaseDirectory,
       confirmThreadArchive: DEFAULT_UNIFIED_SETTINGS.confirmThreadArchive,
       confirmThreadDelete: DEFAULT_UNIFIED_SETTINGS.confirmThreadDelete,
+      terminalFontFamily: DEFAULT_UNIFIED_SETTINGS.terminalFontFamily,
       textGenerationModelSelection: DEFAULT_UNIFIED_SETTINGS.textGenerationModelSelection,
     });
     onRestored?.();
@@ -812,6 +817,33 @@ export function GeneralSettingsPanel() {
                 updateSettings({ confirmThreadDelete: Boolean(checked) })
               }
               aria-label="Confirm thread deletion"
+            />
+          }
+        />
+
+        <SettingsRow
+          title="Terminal font"
+          description="Custom font family for the terminal. Leave empty for default monospace font."
+          resetAction={
+            settings.terminalFontFamily !== DEFAULT_UNIFIED_SETTINGS.terminalFontFamily ? (
+              <SettingResetButton
+                label="terminal font"
+                onClick={() =>
+                  updateSettings({
+                    terminalFontFamily: DEFAULT_UNIFIED_SETTINGS.terminalFontFamily,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <DraftInput
+              className="w-full sm:w-72"
+              value={settings.terminalFontFamily}
+              onCommit={(next) => updateSettings({ terminalFontFamily: next })}
+              placeholder='"Fira Code", monospace'
+              spellCheck={false}
+              aria-label="Terminal font family"
             />
           }
         />
