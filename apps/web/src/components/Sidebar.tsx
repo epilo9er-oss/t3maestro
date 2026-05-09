@@ -2463,10 +2463,11 @@ const SidebarChromeHeader = memo(function SidebarChromeHeader({
               to="/"
             >
               <T3Wordmark />
-              <span className="truncate text-sm font-medium tracking-tight text-muted-foreground">
-                Code
+              <span className="truncate tracking-tighter text-muted-foreground">
+                <span className="text-sm font-medium">S</span>
+                <span className="text-xs font-thin">ynapse</span>
               </span>
-              <span className="rounded-full bg-muted/50 px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-[0.18em] text-muted-foreground/60">
+              <span className="self-end rounded-full bg-muted/50 px-1.5 py-0.5 my-0.5 text-[8px] font-small uppercase tracking-[0.12em] text-muted-foreground/60">
                 {APP_STAGE_LABEL}
               </span>
             </Link>
