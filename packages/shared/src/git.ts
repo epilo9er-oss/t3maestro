@@ -33,7 +33,7 @@ export function buildTemporaryWorktreeBranchName(prefix?: string): string {
  *   - prefix/githubNickname/token (8-char hex)
  */
 export function isTemporaryWorktreeBranch(refName: string, prefix?: string): boolean {
-  const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
+  const branchPrefix = (prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX).toLowerCase();
   const escapedPrefix = branchPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`^${escapedPrefix}(?:\\/[^\\/]+)?\\/[0-9a-f]{8}$`);
   return pattern.test(refName.trim().toLowerCase());
@@ -53,7 +53,7 @@ export function extractPrefixFromBranch(branch: string): string {
   const lastSegment = trimmed.slice(lastSlashIndex + 1);
 
   // Check if last segment is an 8-char hex token (temporary worktree format)
-  if (/^[0-9a-f]{8}$/.test(lastSegment)) {
+  if (/^[0-9a-f]{8}$/i.test(lastSegment)) {
     return trimmed.slice(0, lastSlashIndex);
   }
 
