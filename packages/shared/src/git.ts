@@ -15,6 +15,8 @@ export const DEFAULT_WORKTREE_BRANCH_PREFIX = "t3synapse";
 /**
  * Build a temporary worktree branch name with the given prefix.
  * Uses DEFAULT_WORKTREE_BRANCH_PREFIX if no prefix is provided.
+ *
+ * The prefix can include multiple segments (e.g., 't3synapse/username').
  */
 export function buildTemporaryWorktreeBranchName(prefix?: string): string {
   const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
@@ -25,16 +27,45 @@ export function buildTemporaryWorktreeBranchName(prefix?: string): string {
 /**
  * Check if a ref name is a temporary worktree branch for the given prefix.
  * Uses DEFAULT_WORKTREE_BRANCH_PREFIX if no prefix is provided.
+ *
+ * Matches both formats:
+ *   - prefix/token (8-char hex)
+ *   - prefix/githubNickname/token (8-char hex)
  */
 export function isTemporaryWorktreeBranch(refName: string, prefix?: string): boolean {
   const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
-  const pattern = new RegExp(`^${branchPrefix}\\/[0-9a-f]{8}$`);
+  const escapedPrefix = branchPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`^${escapedPrefix}(?:\\/[^\\/]+)?\\/[0-9a-f]{8}$`);
   return pattern.test(refName.trim().toLowerCase());
+}
+
+/**
+ * Extract the prefix from a temporary worktree branch name.
+ * For example, 't3synapse/username/abc12345' → 't3synapse/username'
+ *              't3synapse/abc12345' → 't3synapse'
+ */
+export function extractPrefixFromBranch(branch: string): string {
+  const trimmed = branch.trim();
+  const lastSlashIndex = trimmed.lastIndexOf("/");
+
+  if (lastSlashIndex === -1) return DEFAULT_WORKTREE_BRANCH_PREFIX;
+
+  const lastSegment = trimmed.slice(lastSlashIndex + 1);
+
+  // Check if last segment is an 8-char hex token (temporary worktree format)
+  if (/^[0-9a-f]{8}$/.test(lastSegment)) {
+    return trimmed.slice(0, lastSlashIndex);
+  }
+
+  // Not a temporary worktree format, return default
+  return DEFAULT_WORKTREE_BRANCH_PREFIX;
 }
 
 /**
  * Build a generated worktree branch name with a descriptive fragment.
  * This is used when the provider generates a branch name based on context.
+ *
+ * The prefix can include multiple segments (e.g., 't3synapse/username').
  */
 export function buildGeneratedWorktreeBranchName(raw: string, prefix?: string): string {
   const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
