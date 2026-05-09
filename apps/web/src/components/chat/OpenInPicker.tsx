@@ -9,6 +9,7 @@ import { Menu, MenuItem, MenuPopup, MenuShortcut, MenuTrigger } from "../ui/menu
 import {
   AntigravityIcon,
   CursorIcon,
+  ForkIcon,
   Icon,
   KiroIcon,
   TraeIcon,
@@ -75,6 +76,11 @@ const resolveOptions = (platform: string, availableEditors: ReadonlyArray<Editor
       label: "Antigravity",
       Icon: AntigravityIcon,
       value: "antigravity",
+    },
+    {
+      label: "Fork",
+      Icon: ForkIcon,
+      value: "fork",
     },
     {
       label: "IntelliJ IDEA",
