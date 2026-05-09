@@ -21,6 +21,10 @@ on:
         description: "Release version (for example 1.2.3 or v1.2.3)"
         required: false
         type: string
+      update_repository:
+        description: "GitHub repository for updates (owner/repo format, leave empty for default)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -78,6 +82,7 @@ jobs:
       cli_dist_tag: ${{ steps.release_meta.outputs.cli_dist_tag }}
       is_prerelease: ${{ steps.release_meta.outputs.is_prerelease }}
       make_latest: ${{ steps.release_meta.outputs.make_latest }}
+      update_repository: ${{ steps.release_meta.outputs.update_repository }}
       ref: ${{ github.sha }}
     steps:
       - name: Checkout
@@ -104,6 +109,8 @@ jobs:
         env:
           DISPATCH_CHANNEL: ${{ github.event.inputs.channel }}
           DISPATCH_VERSION: ${{ github.event.inputs.version }}
+          DISPATCH_UPDATE_REPOSITORY: ${{ github.event.inputs.update_repository }}
+          UPDATE_REPOSITORY: ${{ vars.UPDATE_REPOSITORY }}
           NIGHTLY_DATE: ${{ github.run_started_at }}
           NIGHTLY_SHA: ${{ github.sha }}
           NIGHTLY_RUN_NUMBER: ${{ github.run_number }}
@@ -150,6 +157,14 @@ jobs:
               echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
               echo "make_latest=false" >> "$GITHUB_OUTPUT"
             fi
+          fi
+
+          # Set update repository (priority: workflow_dispatch input > vars.UPDATE_REPOSITORY > current repo)
+          update_repository="${DISPATCH_UPDATE_REPOSITORY:-${UPDATE_REPOSITORY:-${GITHUB_REPOSITORY}}}"
+          if [[ -n "$update_repository" ]]; then
+            echo "update_repository=$update_repository" >> "$GITHUB_OUTPUT"
+          else
+            echo "update_repository=" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Lint
@@ -309,6 +324,7 @@ jobs:
       - name: Build desktop artifact
         shell: bash
         env:
+          T3CODE_DESKTOP_UPDATE_REPOSITORY: ${{ needs.preflight.outputs.update_repository }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
@@ -329,6 +345,13 @@ jobs:
             --build-version "${{ needs.preflight.outputs.version }}"
             --verbose
           )
+
+          # Show update repository configuration
+          if [[ -n "${T3CODE_DESKTOP_UPDATE_REPOSITORY:-}" ]]; then
+            echo "Update repository: $T3CODE_DESKTOP_UPDATE_REPOSITORY"
+          else
+            echo "Update repository: (default, will use GITHUB_REPOSITORY)"
+          fi
 
           has_all() {
             for value in "$@"; do
