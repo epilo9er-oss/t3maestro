@@ -1,8 +1,7 @@
 # Synapse 🧠
 
 > [!IMPORTANT]
-> Synapse는 개인적인 AI 실험을 위한 기능적 런타임입니다.
-> [T3Code](https://github.com/pingdotgg/t3code)를 기반으로 포크되었으며, 
+> Synapse는 [T3Code](https://github.com/pingdotgg/t3code)를 기반으로 포크되었으며, 
 > **개인 AI 프로젝트를 위한** 에이전트 상태 관리 및 관찰 가능한 실행 흐름에 초점을 맞추고 있습니다.
 
 # 🚀 Overview
