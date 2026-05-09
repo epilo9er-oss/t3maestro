@@ -39,7 +39,9 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";
 import { useGitStatus } from "~/lib/gitStatusState";
+import { useSourceControlDiscovery } from "~/lib/sourceControlDiscoveryState";
 import { usePrimaryEnvironmentId } from "../environments/primary";
+import * as Option from "effect/Option";
 import { readEnvironmentApi } from "../environmentApi";
 import { isElectron } from "../env";
 import { readLocalApi } from "../localApi";
@@ -629,6 +631,40 @@ export default function ChatView(props: ChatViewProps) {
     routeKind === "server" ? store.threadLastVisitedAtById[routeThreadKey] : undefined,
   );
   const settings = useSettings();
+  const sourceControlDiscovery = useSourceControlDiscovery();
+
+  // Determine prefix for worktree branch name (based on source control auth)
+  const worktreePrefix = useMemo(() => {
+    if (settings.worktreeBranchPrefix.length > 0) {
+      return settings.worktreeBranchPrefix;
+    }
+
+    // Empty prefix: use authenticated username if available
+    if (!sourceControlDiscovery.data) return "t3synapse";
+
+    const providerPriority: Array<"github" | "gitlab" | "azure-devops" | "bitbucket"> = [
+      "github",
+      "gitlab",
+      "azure-devops",
+      "bitbucket",
+    ];
+
+    const authenticatedProvider = providerPriority
+      .map((kind) =>
+        sourceControlDiscovery.data?.sourceControlProviders.find(
+          (p) => p.kind === kind && p.auth.status === "authenticated",
+        ),
+      )
+      .find((provider) => provider !== undefined);
+
+    if (authenticatedProvider) {
+      const account = Option.getOrNull(authenticatedProvider.auth.account);
+      if (account) return `t3synapse/${account}`;
+    }
+
+    return "t3synapse";
+  }, [settings.worktreeBranchPrefix, sourceControlDiscovery.data]);
+
   const setStickyComposerModelSelection = useComposerDraftStore(
     (store) => store.setStickyModelSelection,
   );
@@ -2846,7 +2882,7 @@ export default function ChatView(props: ChatViewProps) {
                     prepareWorktree: {
                       projectCwd: activeProject.cwd,
                       baseBranch: baseBranchForWorktree,
-                      branch: buildTemporaryWorktreeBranchName(settings.worktreeBranchPrefix),
+                      branch: buildTemporaryWorktreeBranchName(worktreePrefix),
                     },
                     runSetupScript: true,
                   }

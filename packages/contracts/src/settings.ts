@@ -353,8 +353,8 @@ export const ServerSettings = Schema.Struct({
     Schema.withDecodingDefault(Effect.succeed("local" as const satisfies ThreadEnvMode)),
   ),
   addProjectBaseDirectory: TrimmedString.pipe(Schema.withDecodingDefault(Effect.succeed(""))),
-  worktreeBranchPrefix: TrimmedNonEmptyString.pipe(
-    Schema.withDecodingDefault(Effect.succeed("t3synapse")),
+  worktreeBranchPrefix: TrimmedString.pipe(
+    Schema.withDecodingDefault(Effect.succeed("")),
   ),
   textGenerationModelSelection: ModelSelection.pipe(
     Schema.withDecodingDefault(
@@ -457,7 +457,7 @@ export const ServerSettingsPatch = Schema.Struct({
   automaticGitFetchInterval: Schema.optionalKey(Schema.DurationFromMillis),
   defaultThreadEnvMode: Schema.optionalKey(ThreadEnvMode),
   addProjectBaseDirectory: Schema.optionalKey(TrimmedString),
-  worktreeBranchPrefix: Schema.optionalKey(TrimmedNonEmptyString),
+  worktreeBranchPrefix: Schema.optionalKey(TrimmedString),
   textGenerationModelSelection: Schema.optionalKey(ModelSelectionPatch),
   observability: Schema.optionalKey(
     Schema.Struct({

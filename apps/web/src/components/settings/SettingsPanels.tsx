@@ -1,7 +1,7 @@
 import { ArchiveIcon, ArchiveX, LoaderIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   defaultInstanceIdForDriver,
   type DesktopUpdateChannel,
@@ -77,6 +77,8 @@ import {
 } from "./settingsLayout";
 import { ProjectFavicon } from "../ProjectFavicon";
 import { useServerObservability, useServerProviders } from "../../rpc/serverState";
+import { useSourceControlDiscovery } from "../../lib/sourceControlDiscoveryState";
+import * as Option from "effect/Option";
 
 const THEME_OPTIONS = [
   {
@@ -493,6 +495,34 @@ export function GeneralSettingsPanel() {
   const { updateSettings } = useUpdateSettings();
   const observability = useServerObservability();
   const serverProviders = useServerProviders();
+  const sourceControlDiscovery = useSourceControlDiscovery();
+
+  // Determine placeholder based on source control authentication status
+  const placeholderPrefix = useMemo(() => {
+    if (!sourceControlDiscovery.data) return "t3synapse";
+
+    const providerPriority: Array<"github" | "gitlab" | "azure-devops" | "bitbucket"> = [
+      "github",
+      "gitlab",
+      "azure-devops",
+      "bitbucket",
+    ];
+
+    const authenticatedProvider = providerPriority
+      .map((kind) =>
+        sourceControlDiscovery.data?.sourceControlProviders.find(
+          (p) => p.kind === kind && p.auth.status === "authenticated",
+        ),
+      )
+      .find((provider) => provider !== undefined);
+
+    if (authenticatedProvider) {
+      const account = Option.getOrNull(authenticatedProvider.auth.account);
+      if (account) return `t3synapse/${account}`;
+    }
+
+    return "t3synapse";
+  }, [sourceControlDiscovery.data]);
   const diagnosticsDescription = formatDiagnosticsDescription({
     localTracingEnabled: observability?.localTracingEnabled ?? false,
     otlpTracesEnabled: observability?.otlpTracesEnabled ?? false,
@@ -748,7 +778,7 @@ export function GeneralSettingsPanel() {
 
         <SettingsRow
           title="Worktree branch prefix"
-          description="Branch name prefix for new worktree threads (e.g., 't3synapse/abc12345')."
+          description="Branch name prefix for new worktree threads. Leave empty to use the placeholder value shown in the field (updates based on your source control authentication). Or specify a custom prefix as needed."
           resetAction={
             settings.worktreeBranchPrefix !== DEFAULT_UNIFIED_SETTINGS.worktreeBranchPrefix ? (
               <SettingResetButton
@@ -767,11 +797,11 @@ export function GeneralSettingsPanel() {
               value={settings.worktreeBranchPrefix}
               onCommit={(next) => {
                 const trimmed = next.trim();
-                if (trimmed.length > 0) {
+                if (trimmed !== settings.worktreeBranchPrefix) {
                   updateSettings({ worktreeBranchPrefix: trimmed });
                 }
               }}
-              placeholder="t3synapse"
+              placeholder={placeholderPrefix}
               spellCheck={false}
               aria-label="Worktree branch prefix"
             />

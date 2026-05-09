@@ -64,6 +64,12 @@ describe("isTemporaryWorktreeBranch", () => {
     expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/DEADBEEF`)).toBe(true);
   });
 
+  it("matches temporary worktree refs with github nickname", () => {
+    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/githubuser/deadbeef`)).toBe(true);
+    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/GitHubUser/deadbeef`)).toBe(true);
+    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/user123/abc12345`)).toBe(true);
+  });
+
   it("rejects non-temporary refName names", () => {
     expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/feature/demo`)).toBe(false);
     expect(isTemporaryWorktreeBranch("main")).toBe(false);
