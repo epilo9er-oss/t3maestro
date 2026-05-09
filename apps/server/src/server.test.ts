@@ -3950,6 +3950,8 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
         assertTrue(finalCommand?.type === "thread.turn.start");
         if (finalCommand?.type === "thread.turn.start") {
           assert.equal(finalCommand.bootstrap, undefined);
+          assert.equal(finalCommand.bootstrapBranch, "t3code/bootstrap-refName");
+          assert.equal(finalCommand.bootstrapWorktreePath, "/tmp/bootstrap-worktree");
         }
       }).pipe(Effect.provide(NodeHttpServer.layerTest)),
   );
