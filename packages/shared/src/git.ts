@@ -10,8 +10,58 @@ import * as Effect from "effect/Effect";
 import * as Random from "effect/Random";
 import { detectSourceControlProviderFromRemoteUrl } from "./sourceControl.ts";
 
-export const WORKTREE_BRANCH_PREFIX = "t3code";
-const TEMP_WORKTREE_BRANCH_PATTERN = new RegExp(`^${WORKTREE_BRANCH_PREFIX}\\/[0-9a-f]{8}$`);
+export const DEFAULT_WORKTREE_BRANCH_PREFIX = "t3synapse";
+
+/**
+ * Build a temporary worktree branch name with the given prefix.
+ * Uses DEFAULT_WORKTREE_BRANCH_PREFIX if no prefix is provided.
+ */
+export function buildTemporaryWorktreeBranchName(prefix?: string): string {
+  const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
+  const token = Effect.runSync(Random.nextUUIDv4).replace(/-/g, "").slice(0, 8).toLowerCase();
+  return `${branchPrefix}/${token}`;
+}
+
+/**
+ * Check if a ref name is a temporary worktree branch for the given prefix.
+ * Uses DEFAULT_WORKTREE_BRANCH_PREFIX if no prefix is provided.
+ */
+export function isTemporaryWorktreeBranch(refName: string, prefix?: string): boolean {
+  const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
+  const pattern = new RegExp(`^${branchPrefix}\\/[0-9a-f]{8}$`);
+  return pattern.test(refName.trim().toLowerCase());
+}
+
+/**
+ * Build a generated worktree branch name with a descriptive fragment.
+ * This is used when the provider generates a branch name based on context.
+ */
+export function buildGeneratedWorktreeBranchName(raw: string, prefix?: string): string {
+  const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
+  const normalized = raw
+    .trim()
+    .toLowerCase()
+    .replace(/^refs\/heads\//, "")
+    .replace(/['"`]/g, "");
+
+  const withoutPrefix = normalized.startsWith(`${branchPrefix}/`)
+    ? normalized.slice(`${branchPrefix}/`.length)
+    : normalized;
+
+  const branchFragment = withoutPrefix
+    .replace(/[^a-z0-9/_-]+/g, "-")
+    .replace(/\/+/g, "/")
+    .replace(/-+/g, "-")
+    .replace(/^[./_-]+|[./_-]+$/g, "")
+    .slice(0, 64)
+    .replace(/[./_-]+$/g, "");
+
+  const safeFragment = branchFragment.length > 0 ? branchFragment : "update";
+  return `${branchPrefix}/${safeFragment}`;
+}
+
+// Backward compatibility exports (deprecated)
+export const WORKTREE_BRANCH_PREFIX = DEFAULT_WORKTREE_BRANCH_PREFIX;
 
 /**
  * Sanitize an arbitrary string into a valid, lowercase git refName fragment.
@@ -84,15 +134,6 @@ export function deriveLocalBranchNameFromRemoteRef(branchName: string): string {
     return branchName;
   }
   return branchName.slice(firstSeparatorIndex + 1);
-}
-
-export function buildTemporaryWorktreeBranchName(): string {
-  const token = Effect.runSync(Random.nextUUIDv4).replace(/-/g, "").slice(0, 8).toLowerCase();
-  return `${WORKTREE_BRANCH_PREFIX}/${token}`;
-}
-
-export function isTemporaryWorktreeBranch(refName: string): boolean {
-  return TEMP_WORKTREE_BRANCH_PATTERN.test(refName.trim().toLowerCase());
 }
 
 /**

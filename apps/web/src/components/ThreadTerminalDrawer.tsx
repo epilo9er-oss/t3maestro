@@ -322,7 +322,7 @@ export function TerminalViewport({
       lineHeight: 1.2,
       fontSize: 12,
       scrollback: 5_000,
-      fontFamily: settings.terminalFontFamily || undefined,
+      ...(settings.terminalFontFamily ? { fontFamily: settings.terminalFontFamily } : {}),
       theme: terminalThemeFromApp(mount),
     });
     terminal.loadAddon(fitAddon);
