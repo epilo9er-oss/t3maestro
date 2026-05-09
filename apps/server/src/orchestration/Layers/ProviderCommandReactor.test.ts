@@ -648,6 +648,43 @@ describe("ProviderCommandReactor", () => {
     expect(harness.refreshStatus.mock.calls[0]?.[0]).toBe("/tmp/provider-project-worktree");
   });
 
+  it("uses bootstrap worktree metadata for first-turn branch generation", async () => {
+    const harness = await createHarness();
+    const now = "2026-01-01T00:00:00.000Z";
+
+    harness.generateBranchName.mockReturnValue(
+      Effect.succeed({
+        branch: "feature/bootstrap-generated",
+      }),
+    );
+
+    await Effect.runPromise(
+      harness.engine.dispatch({
+        type: "thread.turn.start",
+        commandId: CommandId.make("cmd-turn-start-branch-bootstrap"),
+        threadId: ThreadId.make("thread-1"),
+        message: {
+          messageId: asMessageId("user-message-branch-bootstrap"),
+          role: "user",
+          text: "Add bootstrap-safe branch generation.",
+          attachments: [],
+        },
+        bootstrapBranch: "t3code/1234abcd",
+        bootstrapWorktreePath: "/tmp/provider-project-bootstrap-worktree",
+        interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
+        runtimeMode: "approval-required",
+        createdAt: now,
+      }),
+    );
+
+    await waitFor(() => harness.generateBranchName.mock.calls.length === 1);
+    await waitFor(() => harness.renameBranch.mock.calls.length === 1);
+    expect(harness.renameBranch.mock.calls[0]?.[0]).toMatchObject({
+      cwd: "/tmp/provider-project-bootstrap-worktree",
+      oldBranch: "t3code/1234abcd",
+    });
+  });
+
   it("forwards codex model options through session start and turn send", async () => {
     const harness = await createHarness();
     const now = "2026-01-01T00:00:00.000Z";

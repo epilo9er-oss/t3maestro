@@ -168,6 +168,8 @@ describe("decider project scripts", () => {
             { id: "reasoningEffort", value: "high" },
             { id: "fastMode", value: true },
           ]),
+          bootstrapBranch: "t3code/1234abcd",
+          bootstrapWorktreePath: "/tmp/bootstrap-worktree",
           interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
           runtimeMode: "approval-required",
           createdAt: now,
@@ -193,6 +195,8 @@ describe("decider project scripts", () => {
         { id: "reasoningEffort", value: "high" },
         { id: "fastMode", value: true },
       ]),
+      bootstrapBranch: "t3code/1234abcd",
+      bootstrapWorktreePath: "/tmp/bootstrap-worktree",
       runtimeMode: "approval-required",
     });
   });

@@ -526,6 +526,8 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
                 branch: worktree.worktree.refName,
                 worktreePath: targetWorktreePath,
               });
+              finalTurnStartCommand.bootstrapBranch = worktree.worktree.refName;
+              finalTurnStartCommand.bootstrapWorktreePath = targetWorktreePath;
               yield* refreshGitStatus(targetWorktreePath);
             }
 
