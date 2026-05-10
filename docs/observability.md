@@ -1,6 +1,6 @@
 # Observability
 
-T3 Synapse has one server-side observability model:
+T3 Maestro has one server-side observability model:
 
 - pretty logs go to stdout for humans
 - completed spans go to a local NDJSON trace file
@@ -141,7 +141,7 @@ macOS app bundle example:
 T3CODE_OTLP_TRACES_URL=http://localhost:4318/v1/traces \
 T3CODE_OTLP_METRICS_URL=http://localhost:4318/v1/metrics \
 T3CODE_OTLP_SERVICE_NAME=t3-desktop \
-"/Applications/T3 Synapse.app/Contents/MacOS/T3 Synapse"
+"/Applications/T3 Maestro.app/Contents/MacOS/T3 Maestro"
 ```
 
 Direct binary example:

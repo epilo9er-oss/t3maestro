@@ -20,9 +20,9 @@ describe("branding", () => {
       value: {
         desktopBridge: {
           getAppBranding: () => ({
-            baseName: "T3 Synapse",
+            baseName: "T3 Maestro",
             stageLabel: "Nightly",
-            displayName: "T3 Synapse (Nightly)",
+            displayName: "T3 Maestro (Nightly)",
           }),
         },
       },
@@ -30,9 +30,9 @@ describe("branding", () => {
 
     const branding = await import("./branding");
 
-    expect(branding.APP_BASE_NAME).toBe("T3 Synapse");
+    expect(branding.APP_BASE_NAME).toBe("T3 Maestro");
     expect(branding.APP_STAGE_LABEL).toBe("Nightly");
-    expect(branding.APP_DISPLAY_NAME).toBe("T3 Synapse (Nightly)");
+    expect(branding.APP_DISPLAY_NAME).toBe("T3 Maestro (Nightly)");
   });
 
   it("normalizes hosted app channel metadata", async () => {

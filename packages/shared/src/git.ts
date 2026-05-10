@@ -10,13 +10,13 @@ import * as Effect from "effect/Effect";
 import * as Random from "effect/Random";
 import { detectSourceControlProviderFromRemoteUrl } from "./sourceControl.ts";
 
-export const DEFAULT_WORKTREE_BRANCH_PREFIX = "t3synapse";
+export const DEFAULT_WORKTREE_BRANCH_PREFIX = "t3maestro";
 
 /**
  * Build a temporary worktree branch name with the given prefix.
  * Uses DEFAULT_WORKTREE_BRANCH_PREFIX if no prefix is provided.
  *
- * The prefix can include multiple segments (e.g., 't3synapse/username').
+ * The prefix can include multiple segments (e.g., 't3maestro/username').
  */
 export function buildTemporaryWorktreeBranchName(prefix?: string): string {
   const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
@@ -41,8 +41,8 @@ export function isTemporaryWorktreeBranch(refName: string, prefix?: string): boo
 
 /**
  * Extract the prefix from a temporary worktree branch name.
- * For example, 't3synapse/username/abc12345' → 't3synapse/username'
- *              't3synapse/abc12345' → 't3synapse'
+ * For example, 't3maestro/username/abc12345' → 't3maestro/username'
+ *              't3maestro/abc12345' → 't3maestro'
  */
 export function extractPrefixFromBranch(branch: string): string {
   const trimmed = branch.trim();
@@ -65,7 +65,7 @@ export function extractPrefixFromBranch(branch: string): string {
  * Build a generated worktree branch name with a descriptive fragment.
  * This is used when the provider generates a branch name based on context.
  *
- * The prefix can include multiple segments (e.g., 't3synapse/username').
+ * The prefix can include multiple segments (e.g., 't3maestro/username').
  */
 export function buildGeneratedWorktreeBranchName(raw: string, prefix?: string): string {
   const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;

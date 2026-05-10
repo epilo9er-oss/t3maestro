@@ -80,7 +80,7 @@ export class DesktopEnvironment extends Context.Service<
   DesktopEnvironmentShape
 >()("t3/desktop/Environment") {}
 
-const APP_BASE_NAME = "T3 Synapse";
+const APP_BASE_NAME = "T3 Maestro";
 
 function resolveDesktopAppStageLabel(input: {
   readonly isDevelopment: boolean;
@@ -161,7 +161,7 @@ const makeDesktopEnvironment = Effect.fn("desktop.environment.make")(function* (
   const displayName = branding.displayName;
   const stateDir = path.join(baseDir, isDevelopment ? "dev" : "userdata");
   const userDataDirName = isDevelopment ? "t3code-dev" : "t3code";
-  const legacyUserDataDirName = isDevelopment ? "T3 Synapse (Dev)" : "T3 Synapse (Alpha)";
+  const legacyUserDataDirName = isDevelopment ? "T3 Maestro (Dev)" : "T3 Maestro (Alpha)";
   const resourcesPath = input.resourcesPath;
 
   return DesktopEnvironment.of({

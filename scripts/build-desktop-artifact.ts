@@ -552,8 +552,8 @@ export function resolveMockUpdateServerUrl(mockUpdateServerPort: number | undefi
 
 export function resolveDesktopProductName(version: string): string {
   return resolveDesktopUpdateChannel(version) === "nightly"
-    ? "T3 Synapse (Nightly)"
-    : (desktopPackageJson.productName ?? "T3 Synapse");
+    ? "T3 Maestro (Nightly)"
+    : (desktopPackageJson.productName ?? "T3 Maestro");
 }
 
 const createBuildConfig = Effect.fn("createBuildConfig")(function* (
@@ -781,7 +781,7 @@ const buildDesktopArtifact = Effect.fn("buildDesktopArtifact")(function* (
     buildVersion: appVersion,
     t3codeCommitHash: commitHash,
     private: true,
-    description: "T3 Synapse desktop build",
+    description: "T3 Maestro desktop build",
     author: "T3 Tools",
     main: "apps/desktop/dist-electron/main.cjs",
     build: yield* createBuildConfig(
@@ -940,7 +940,7 @@ const buildDesktopArtifactCli = Command.make("build-desktop-artifact", {
     Flag.optional,
   ),
 }).pipe(
-  Command.withDescription("Build a desktop artifact for T3 Synapse."),
+  Command.withDescription("Build a desktop artifact for T3 Maestro."),
   Command.withHandler((input) => Effect.flatMap(resolveBuildOptions(input), buildDesktopArtifact)),
 );
 

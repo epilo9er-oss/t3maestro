@@ -1,5 +1,5 @@
 {
-  "name": "T3 Synapse Dev",
+  "name": "T3 Maestro Dev",
   "image": "debian:bookworm",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},

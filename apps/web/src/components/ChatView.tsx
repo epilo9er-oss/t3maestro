@@ -640,7 +640,7 @@ export default function ChatView(props: ChatViewProps) {
     }
 
     // Empty prefix: use authenticated username if available
-    if (!sourceControlDiscovery.data) return "t3synapse";
+    if (!sourceControlDiscovery.data) return "t3maestro";
 
     const providerPriority: Array<"github" | "gitlab" | "azure-devops" | "bitbucket"> = [
       "github",
@@ -659,10 +659,10 @@ export default function ChatView(props: ChatViewProps) {
 
     if (authenticatedProvider) {
       const account = Option.getOrNull(authenticatedProvider.auth.account);
-      if (account) return `t3synapse/${account}`;
+      if (account) return `t3maestro/${account}`;
     }
 
-    return "t3synapse";
+    return "t3maestro";
   }, [settings.worktreeBranchPrefix, sourceControlDiscovery.data]);
 
   const setStickyComposerModelSelection = useComposerDraftStore(

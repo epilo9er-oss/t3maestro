@@ -1,6 +1,6 @@
 # Keybindings
 
-T3 Synapse reads keybindings from:
+T3 Maestro reads keybindings from:
 
 - `~/.t3/keybindings.json`
 

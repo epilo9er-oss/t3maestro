@@ -47,7 +47,7 @@ vi.mock("electron", () => ({
     getAppPath: getAppPathMock,
     getVersion: getVersionMock,
     isPackaged: true,
-    name: "T3 Synapse",
+    name: "T3 Maestro",
     on: onMock,
     quit: quitMock,
     relaunch: relaunchMock,

@@ -30,7 +30,7 @@ function installTestBrowser(url: string) {
   };
 
   vi.stubGlobal("window", testWindow);
-  vi.stubGlobal("document", { title: "T3 Synapse" });
+  vi.stubGlobal("document", { title: "T3 Maestro" });
 
   return testWindow;
 }

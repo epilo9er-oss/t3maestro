@@ -499,7 +499,7 @@ export function GeneralSettingsPanel() {
 
   // Determine placeholder based on source control authentication status
   const placeholderPrefix = useMemo(() => {
-    if (!sourceControlDiscovery.data) return "t3synapse";
+    if (!sourceControlDiscovery.data) return "t3maestro";
 
     const providerPriority: Array<"github" | "gitlab" | "azure-devops" | "bitbucket"> = [
       "github",
@@ -518,10 +518,10 @@ export function GeneralSettingsPanel() {
 
     if (authenticatedProvider) {
       const account = Option.getOrNull(authenticatedProvider.auth.account);
-      if (account) return `t3synapse/${account}`;
+      if (account) return `t3maestro/${account}`;
     }
 
-    return "t3synapse";
+    return "t3maestro";
   }, [sourceControlDiscovery.data]);
   const diagnosticsDescription = formatDiagnosticsDescription({
     localTracingEnabled: observability?.localTracingEnabled ?? false,
@@ -559,7 +559,7 @@ export function GeneralSettingsPanel() {
       <SettingsSection title="General">
         <SettingsRow
           title="Theme"
-          description="Choose how T3 Synapse looks across the app."
+          description="Choose how T3 Maestro looks across the app."
           resetAction={
             theme !== "system" ? (
               <SettingResetButton label="theme" onClick={() => setTheme("system")} />
