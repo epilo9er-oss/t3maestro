@@ -1,7 +1,7 @@
 # T3 Maestro 🧠
 
 > [!IMPORTANT]
-> T3 Maestro는 [T3Code](https://github.com/pingdotgg/t3code)를 기반으로 포크되었으며, 
+> T3 Maestro는 [T3Code](https://github.com/pingdotgg/t3code)를 기반으로 포크되었으며,
 > **개인 AI 프로젝트를 위한** 에이전트 상태 관리 및 관찰 가능한 실행 흐름에 초점을 맞추고 있습니다.
 
 # 🚀 Overview
@@ -9,6 +9,7 @@
 T3 Maestro는 T3 Code의 견고한 구조를 바탕으로 구축된 멀티 에이전트 오케스트레이션 레이어입니다. 단순한 코드 실행을 넘어, 복잡하게 얽힌 에이전트 간의 워크플로우를 체계적으로 조율하고 실행 전 과정을 투명하게 관제하는 것을 목표로 합니다.
 
 Core Capabilities
+
 - Agentic State Management: 분산된 에이전트들 사이의 정교한 상태 유지 및 데이터 전이 최적화
 - High Observability: 복잡한 추론 및 실행 단계를 실시간 시각화하여 운영의 명확성 확보
 - Structured Orchestration: 비결정적인 AI 에이전트의 동작을 사전에 정의된 논리에 따라 정밀하게 제어
@@ -39,8 +40,8 @@ mise install
 ```
 
 > [!NOTE]
-> 본 프로젝트는 개인적인 용도로 리팩토링 중인 포크 저장소입니다. 
-> 공식적인 기여나 최신 업데이트 사항은 원본 저장소인 
+> 본 프로젝트는 개인적인 용도로 리팩토링 중인 포크 저장소입니다.
+> 공식적인 기여나 최신 업데이트 사항은 원본 저장소인
 > [T3Code](https://github.com/pingdotgg/t3code)를 확인해 주시기 바랍니다.
 
 # 📝 Reference & Notes

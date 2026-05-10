@@ -355,7 +355,9 @@ describe("ProviderCommandReactor", () => {
           generateThreadTitle,
         }),
       ),
-      Layer.provideMerge(ServerSettingsService.layerTest({ worktreeBranchPrefix: "t3code" as const })),
+      Layer.provideMerge(
+        ServerSettingsService.layerTest({ worktreeBranchPrefix: "t3code" as const }),
+      ),
       Layer.provideMerge(ServerConfig.layerTest(process.cwd(), baseDir)),
       Layer.provideMerge(NodeServices.layer),
     );
