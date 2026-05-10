@@ -389,12 +389,39 @@ export function resolveLiveThreadBranchUpdate(input: {
     return null;
   }
 
-  if (
-    input.threadBranch !== null &&
+  // Extract prefix from threadBranch to check if both branches use the same prefix
+  // For example, 't3code/github-query-rate-limit' has prefix 't3code'
+  const threadBranchPrefix = input.threadBranch?.split("/")[0] ?? null;
+  const gitStatusPrefix = input.gitStatus.refName?.split("/")[0] ?? null;
+
+  // If both branches use the same prefix, use it for temporary worktree detection
+  // This handles cases like 't3code/bda76797' where the prefix is not the default
+  const commonPrefix =
+    threadBranchPrefix && threadBranchPrefix === gitStatusPrefix ? threadBranchPrefix : undefined;
+
+  // Additional check: if git status ref is just a bare token (e.g., 't3code/bda76797'),
+  // don't treat it as a temporary worktree. Only treat TOKEN-DESCRIPTION format as temporary.
+  const gitStatusLastSegment = input.gitStatus.refName?.split("/").at(-1) ?? "";
+  const isBareToken = /^[0-9a-f]{8}$/i.test(gitStatusLastSegment);
+
+  // Check if threadBranch is a temporary worktree
+  const threadBranchIsTemp =
+    input.threadBranch !== null && isTemporaryWorktreeBranch(input.threadBranch, commonPrefix);
+
+  // Check if gitStatus.refName is a temporary worktree (excluding bare tokens)
+  const gitStatusIsTemp =
+    !isBareToken &&
     input.gitStatus.refName !== null &&
-    !isTemporaryWorktreeBranch(input.threadBranch) &&
-    isTemporaryWorktreeBranch(input.gitStatus.refName)
-  ) {
+    isTemporaryWorktreeBranch(input.gitStatus.refName, commonPrefix);
+
+  // Don't regress semantic thread ref to temporary worktree ref
+  if (!threadBranchIsTemp && gitStatusIsTemp) {
+    return null;
+  }
+
+  // Don't regress semantic thread ref to bare token ref (e.g., 't3code/bda76797')
+  // Bare tokens might be valid branch names, not temporary worktrees
+  if (!threadBranchIsTemp && isBareToken) {
     return null;
   }
 
