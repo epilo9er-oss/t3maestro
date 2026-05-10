@@ -118,7 +118,9 @@ const withIdentity = <A, E, R>(
         Layer.provideMerge(
           FileSystem.layerNoop({
             exists: (path) =>
-              Effect.succeed(input.legacyPathExists === true && path.includes("T3 Maestro (Alpha)")),
+              Effect.succeed(
+                input.legacyPathExists === true && path.includes("T3 Maestro (Alpha)"),
+              ),
             readFileString: () =>
               Effect.succeed(input.packageJson ?? '{"t3codeCommitHash":"abcdef1234567890"}'),
           }),
