@@ -80,8 +80,9 @@ export function extractTokenFromBranch(branch: string): string | null {
 
   // Check if last segment starts with an 8-char hex token
   const tokenMatch = lastSegment.match(/^([0-9a-f]{8})(?:-|$)/i);
-  if (tokenMatch) {
-    return tokenMatch[1].toLowerCase();
+  const token = tokenMatch?.[1];
+  if (token) {
+    return token.toLowerCase();
   }
 
   return null;
