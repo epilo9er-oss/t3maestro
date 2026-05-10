@@ -19,6 +19,8 @@ import {
   type GitPullRequestRefInput,
   type VcsPullResult,
   type VcsRemoveWorktreeInput,
+  type VcsDeleteRefInput,
+  type VcsDeleteRefResult,
   type GitResolvePullRequestResult,
   type GitRunStackedActionInput,
   type GitRunStackedActionResult,
@@ -61,6 +63,9 @@ export interface GitWorkflowServiceShape {
     input: VcsCreateWorktreeInput,
   ) => Effect.Effect<VcsCreateWorktreeResult, GitCommandError>;
   readonly removeWorktree: (input: VcsRemoveWorktreeInput) => Effect.Effect<void, GitCommandError>;
+  readonly deleteRef: (
+    input: VcsDeleteRefInput,
+  ) => Effect.Effect<VcsDeleteRefResult, GitCommandError>;
   readonly createRef: (
     input: VcsCreateRefInput,
   ) => Effect.Effect<VcsCreateRefResult, GitCommandError>;
@@ -297,6 +302,10 @@ export const make = Effect.fn("makeGitWorkflowService")(function* () {
     removeWorktree: (input) =>
       ensureGitCommand("GitWorkflowService.removeWorktree", input.cwd).pipe(
         Effect.andThen(git.removeWorktree(input)),
+      ),
+    deleteRef: (input) =>
+      ensureGitCommand("GitWorkflowService.deleteRef", input.cwd).pipe(
+        Effect.andThen(git.deleteRef(input)),
       ),
     createRef: (input) =>
       ensureGitCommand("GitWorkflowService.createRef", input.cwd).pipe(
