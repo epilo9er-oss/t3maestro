@@ -4,7 +4,9 @@ import { describe, expect, it } from "vitest";
 import {
   applyGitStatusStreamEvent,
   buildTemporaryWorktreeBranchName,
+  buildGeneratedWorktreeBranchName,
   isTemporaryWorktreeBranch,
+  extractTokenFromBranch,
   normalizeGitRemoteUrl,
   parseGitHubRepositoryNameWithOwnerFromRemoteUrl,
   DEFAULT_WORKTREE_BRANCH_PREFIX,
@@ -70,10 +72,19 @@ describe("isTemporaryWorktreeBranch", () => {
     expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/user123/abc12345`)).toBe(true);
   });
 
+  it("matches temporary worktree refs with generated name suffix", () => {
+    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/deadbeef-fix-auth-bug`)).toBe(true);
+    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/abc12345-update-readme`)).toBe(true);
+    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/githubuser/deadbeef-add-feature`)).toBe(
+      true,
+    );
+  });
+
   it("rejects non-temporary refName names", () => {
     expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/feature/demo`)).toBe(false);
     expect(isTemporaryWorktreeBranch("main")).toBe(false);
-    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/deadbeef-extra`)).toBe(false);
+    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/deadbee-extra`)).toBe(false);
+    expect(isTemporaryWorktreeBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/toolongtoken123-extra`)).toBe(false);
   });
 });
 
@@ -137,5 +148,84 @@ describe("applyGitStatusStreamEvent", () => {
       behindCount: 1,
       pr: null,
     });
+  });
+});
+
+describe("extractTokenFromBranch", () => {
+  it("extracts the 8-char hex token from temporary worktree branches", () => {
+    expect(extractTokenFromBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/deadbeef`)).toBe("deadbeef");
+    expect(extractTokenFromBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/ABC12345`)).toBe("abc12345");
+    expect(extractTokenFromBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/githubuser/deadbeef`)).toBe(
+      "deadbeef",
+    );
+  });
+
+  it("extracts the token from branches with generated name suffix", () => {
+    expect(extractTokenFromBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/deadbeef-fix-auth-bug`)).toBe(
+      "deadbeef",
+    );
+    expect(extractTokenFromBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/abc12345-update-readme`)).toBe(
+      "abc12345",
+    );
+    expect(
+      extractTokenFromBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/githubuser/deadbeef-add-feature`),
+    ).toBe("deadbeef");
+  });
+
+  it("returns null for non-temporary worktree branches", () => {
+    expect(extractTokenFromBranch("main")).toBe(null);
+    expect(extractTokenFromBranch("feature/demo")).toBe(null);
+    expect(extractTokenFromBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/feature/demo`)).toBe(null);
+    expect(extractTokenFromBranch(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/deadbee-extra`)).toBe(null);
+  });
+});
+
+describe("buildGeneratedWorktreeBranchName", () => {
+  it("builds a branch name with prefix and fragment", () => {
+    expect(buildGeneratedWorktreeBranchName("fix-auth-bug")).toBe(
+      `${DEFAULT_WORKTREE_BRANCH_PREFIX}/fix-auth-bug`,
+    );
+    expect(buildGeneratedWorktreeBranchName("update readme")).toBe(
+      `${DEFAULT_WORKTREE_BRANCH_PREFIX}/update-readme`,
+    );
+  });
+
+  it("preserves the provided prefix", () => {
+    expect(buildGeneratedWorktreeBranchName("fix-auth-bug", "custom/prefix")).toBe(
+      "custom/prefix/fix-auth-bug",
+    );
+    expect(buildGeneratedWorktreeBranchName("update-readme", "t3maestro/username")).toBe(
+      "t3maestro/username/update-readme",
+    );
+  });
+
+  it("includes the token when provided", () => {
+    expect(buildGeneratedWorktreeBranchName("fix-auth-bug", undefined, "deadbeef")).toBe(
+      `${DEFAULT_WORKTREE_BRANCH_PREFIX}/deadbeef-fix-auth-bug`,
+    );
+    expect(buildGeneratedWorktreeBranchName("update-readme", "t3maestro/username", "abc12345")).toBe(
+      "t3maestro/username/abc12345-update-readme",
+    );
+  });
+
+  it("sanitizes the branch fragment", () => {
+    expect(buildGeneratedWorktreeBranchName("Fix: Auth bug!")).toBe(
+      `${DEFAULT_WORKTREE_BRANCH_PREFIX}/fix-auth-bug`,
+    );
+    expect(buildGeneratedWorktreeBranchName("add 'feature' (demo)")).toBe(
+      `${DEFAULT_WORKTREE_BRANCH_PREFIX}/add-feature-demo`,
+    );
+  });
+
+  it("uses 'update' as fallback for empty fragments", () => {
+    expect(buildGeneratedWorktreeBranchName("")).toBe(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/update`);
+    expect(buildGeneratedWorktreeBranchName("   ")).toBe(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/update`);
+    expect(buildGeneratedWorktreeBranchName("!!!")).toBe(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/update`);
+  });
+
+  it("limits the fragment to 64 characters", () => {
+    const longFragment = "a".repeat(100);
+    const result = buildGeneratedWorktreeBranchName(longFragment);
+    expect(result).toBe(`${DEFAULT_WORKTREE_BRANCH_PREFIX}/${"a".repeat(64)}`);
   });
 });

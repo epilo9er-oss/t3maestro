@@ -15,6 +15,7 @@ import {
 import {
   buildGeneratedWorktreeBranchName,
   extractPrefixFromBranch,
+  extractTokenFromBranch,
   isTemporaryWorktreeBranch,
 } from "@t3tools/shared/git";
 import * as Cache from "effect/Cache";
@@ -586,9 +587,14 @@ const make = Effect.gen(function* () {
       });
       if (!generated) return;
 
-      // Extract prefix from current branch to preserve username if present
+      // Extract prefix and token from current branch to preserve worktree identifier
       const currentPrefix = extractPrefixFromBranch(oldBranch);
-      const targetBranch = buildGeneratedWorktreeBranchName(generated.branch, currentPrefix);
+      const currentToken = extractTokenFromBranch(oldBranch);
+      const targetBranch = buildGeneratedWorktreeBranchName(
+        generated.branch,
+        currentPrefix,
+        currentToken ?? undefined,
+      );
       if (targetBranch === oldBranch) return;
 
       const renamed = yield* gitWorkflow.renameBranch({ cwd, oldBranch, newBranch: targetBranch });

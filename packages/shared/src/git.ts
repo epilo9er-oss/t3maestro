@@ -31,11 +31,15 @@ export function buildTemporaryWorktreeBranchName(prefix?: string): string {
  * Matches both formats:
  *   - prefix/token (8-char hex)
  *   - prefix/githubNickname/token (8-char hex)
+ *   - prefix/token-fragment (8-char hex with generated name)
+ *   - prefix/githubNickname/token-fragment (8-char hex with generated name)
  */
 export function isTemporaryWorktreeBranch(refName: string, prefix?: string): boolean {
   const branchPrefix = (prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX).toLowerCase();
   const escapedPrefix = branchPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`^${escapedPrefix}(?:\\/[^\\/]+)?\\/[0-9a-f]{8}$`);
+  const pattern = new RegExp(
+    `^${escapedPrefix}(?:\\/[^\\/]+)?\\/[0-9a-f]{8}(?:-[a-z0-9-]+)?$`,
+  );
   return pattern.test(refName.trim().toLowerCase());
 }
 
@@ -62,12 +66,42 @@ export function extractPrefixFromBranch(branch: string): string {
 }
 
 /**
+ * Extract the 8-char hex token from a temporary worktree branch name.
+ * For example, 't3maestro/username/abc12345' → 'abc12345'
+ *              't3maestro/abc12345' → 'abc12345'
+ *              't3maestro/abc12345-generated-name' → 'abc12345'
+ * Returns null if the branch is not a temporary worktree format.
+ */
+export function extractTokenFromBranch(branch: string): string | null {
+  const trimmed = branch.trim();
+  const lastSlashIndex = trimmed.lastIndexOf("/");
+
+  if (lastSlashIndex === -1) return null;
+
+  const lastSegment = trimmed.slice(lastSlashIndex + 1);
+
+  // Check if last segment starts with an 8-char hex token
+  const tokenMatch = lastSegment.match(/^([0-9a-f]{8})(?:-|$)/i);
+  if (tokenMatch) {
+    return tokenMatch[1].toLowerCase();
+  }
+
+  return null;
+}
+
+/**
  * Build a generated worktree branch name with a descriptive fragment.
  * This is used when the provider generates a branch name based on context.
  *
  * The prefix can include multiple segments (e.g., 't3maestro/username').
+ * If a token is provided, it will be included as 'token-fragment' to preserve
+ * the worktree identifier for easier matching.
  */
-export function buildGeneratedWorktreeBranchName(raw: string, prefix?: string): string {
+export function buildGeneratedWorktreeBranchName(
+  raw: string,
+  prefix?: string,
+  token?: string,
+): string {
   const branchPrefix = prefix?.trim() || DEFAULT_WORKTREE_BRANCH_PREFIX;
   const normalized = raw
     .trim()
@@ -88,6 +122,11 @@ export function buildGeneratedWorktreeBranchName(raw: string, prefix?: string): 
     .replace(/[./_-]+$/g, "");
 
   const safeFragment = branchFragment.length > 0 ? branchFragment : "update";
+
+  if (token && /^[0-9a-f]{8}$/i.test(token)) {
+    return `${branchPrefix}/${token.toLowerCase()}-${safeFragment}`;
+  }
+
   return `${branchPrefix}/${safeFragment}`;
 }
 

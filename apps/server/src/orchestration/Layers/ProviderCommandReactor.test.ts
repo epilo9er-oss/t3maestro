@@ -355,7 +355,7 @@ describe("ProviderCommandReactor", () => {
           generateThreadTitle,
         }),
       ),
-      Layer.provideMerge(ServerSettingsService.layerTest()),
+      Layer.provideMerge(ServerSettingsService.layerTest({ worktreeBranchPrefix: "t3code" as const })),
       Layer.provideMerge(ServerConfig.layerTest(process.cwd(), baseDir)),
       Layer.provideMerge(NodeServices.layer),
     );
@@ -646,6 +646,12 @@ describe("ProviderCommandReactor", () => {
       message: "Add a safer reconnect backoff.",
     });
     expect(harness.refreshStatus.mock.calls[0]?.[0]).toBe("/tmp/provider-project-worktree");
+    await waitFor(() => harness.renameBranch.mock.calls.length === 1);
+    expect(harness.renameBranch.mock.calls[0]?.[0]).toMatchObject({
+      cwd: "/tmp/provider-project-worktree",
+      oldBranch: "t3code/1234abcd",
+      newBranch: "t3code/1234abcd-feature/gpt-5-4-mini",
+    });
   });
 
   it("uses bootstrap worktree metadata for first-turn branch generation", async () => {
@@ -682,6 +688,7 @@ describe("ProviderCommandReactor", () => {
     expect(harness.renameBranch.mock.calls[0]?.[0]).toMatchObject({
       cwd: "/tmp/provider-project-bootstrap-worktree",
       oldBranch: "t3code/1234abcd",
+      newBranch: "t3code/1234abcd-feature/bootstrap-generated",
     });
   });
 
