@@ -156,6 +156,18 @@ export function useThreadActions() {
           ].join("\n"),
         ));
 
+      const canDeleteBranch = thread.branch !== null && threadProject !== undefined;
+      const shouldDeleteBranch =
+        canDeleteBranch &&
+        localApi &&
+        (await localApi.dialogs.confirm(
+          [
+            `Delete the Git branch "${thread.branch}"?`,
+            "",
+            "This will permanently delete the branch from your repository.",
+          ].join("\n"),
+        ));
+
       if (thread.session && thread.session.status !== "closed") {
         await api.orchestration
           .dispatchCommand({
@@ -245,6 +257,35 @@ export function useThreadActions() {
             type: "error",
             title: "Thread deleted, but worktree removal failed",
             description: `Could not remove ${displayWorktreePath ?? orphanedWorktreePath}. ${message}`,
+          }),
+        );
+      }
+
+      if (!shouldDeleteBranch || !thread.branch || !threadProject) {
+        return;
+      }
+
+      try {
+        await ensureEnvironmentApi(threadRef.environmentId).vcs.deleteRef({
+          cwd: threadProject.cwd,
+          refName: thread.branch,
+          force: false,
+        });
+        await invalidateGitQueries(queryClient, {
+          environmentId: threadRef.environmentId,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown error deleting branch.";
+        console.error("Failed to delete branch after thread deletion", {
+          threadId: threadRef.threadId,
+          branch: thread.branch,
+          error,
+        });
+        toastManager.add(
+          stackedThreadToast({
+            type: "error",
+            title: "Thread deleted, but branch deletion failed",
+            description: `Could not delete branch "${thread.branch}". ${message}`,
           }),
         );
       }

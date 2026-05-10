@@ -1074,6 +1074,12 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
             gitWorkflow.removeWorktree(input).pipe(Effect.tap(() => refreshGitStatus(input.cwd))),
             { "rpc.aggregate": "vcs" },
           ),
+        [WS_METHODS.vcsDeleteRef]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.vcsDeleteRef,
+            gitWorkflow.deleteRef(input).pipe(Effect.tap(() => refreshGitStatus(input.cwd))),
+            { "rpc.aggregate": "vcs" },
+          ),
         [WS_METHODS.vcsCreateRef]: (input) =>
           observeRpcEffect(
             WS_METHODS.vcsCreateRef,
