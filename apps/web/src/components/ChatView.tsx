@@ -2863,7 +2863,7 @@ export default function ChatView(props: ChatViewProps) {
       const bootstrap =
         isLocalDraftThread || baseBranchForWorktree
           ? (() => {
-              // temporary branch name은 한 번만 계산
+              // Compute temporary branch name once
               const temporaryBranchName = baseBranchForWorktree
                 ? buildTemporaryWorktreeBranchName(worktreePrefix)
                 : undefined;
