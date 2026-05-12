@@ -5,6 +5,12 @@ import desktopPackageJson from "../apps/desktop/package.json" with { type: "json
 import serverPackageJson from "../apps/server/package.json" with { type: "json" };
 
 import { BRAND_ASSET_PATHS } from "./lib/brand-assets.ts";
+import {
+  getForkAppName,
+  getForkDomain,
+  getForkSlug,
+  getForkRepo,
+} from "../packages/shared/src/branding.ts";
 import { getDefaultBuildArch } from "./lib/build-target-arch.ts";
 import { resolveCatalogDependencies } from "./lib/resolve-catalog.ts";
 
@@ -499,7 +505,10 @@ function resolveDesktopRuntimeDependencies(
   return resolveCatalogDependencies(runtimeDependencies, catalog, "apps/desktop");
 }
 
-function resolveGitHubPublishConfig(updateChannel: "latest" | "nightly"):
+function resolveGitHubPublishConfig(
+  updateChannel: "latest" | "nightly",
+  forkRepo: string,
+):
   | {
       readonly provider: "github";
       readonly owner: string;
@@ -511,7 +520,7 @@ function resolveGitHubPublishConfig(updateChannel: "latest" | "nightly"):
   const rawRepo =
     process.env.T3CODE_DESKTOP_UPDATE_REPOSITORY?.trim() ||
     process.env.GITHUB_REPOSITORY?.trim() ||
-    "";
+    forkRepo;
   if (!rawRepo) return undefined;
 
   const [owner, repo, ...rest] = rawRepo.split("/");
@@ -551,9 +560,10 @@ export function resolveMockUpdateServerUrl(mockUpdateServerPort: number | undefi
 }
 
 export function resolveDesktopProductName(version: string): string {
+  const forkAppName = getForkAppName();
   return resolveDesktopUpdateChannel(version) === "nightly"
-    ? "T3 Maestro (Nightly)"
-    : (desktopPackageJson.productName ?? "T3 Maestro");
+    ? `${forkAppName} (Nightly)`
+    : (desktopPackageJson.productName ?? forkAppName);
 }
 
 const createBuildConfig = Effect.fn("createBuildConfig")(function* (
@@ -564,16 +574,22 @@ const createBuildConfig = Effect.fn("createBuildConfig")(function* (
   mockUpdates: boolean,
   mockUpdateServerPort: number | undefined,
 ) {
+  // Read fork branding from environment with upstream defaults
+  const forkDomain = getForkDomain();
+  const forkSlug = getForkSlug();
+  const forkAppName = getForkAppName();
+  const forkRepo = getForkRepo();
+
   const buildConfig: Record<string, unknown> = {
-    appId: "com.t3tools.t3code",
+    appId: `${forkDomain}.${forkSlug}`,
     productName: resolveDesktopProductName(version),
-    artifactName: "T3-Code-${version}-${arch}.${ext}",
+    artifactName: `${forkSlug.replace(/[^a-z0-9-]/gi, "-")}-${version}-${arch}.${ext}`,
     directories: {
       buildResources: "apps/desktop/resources",
     },
   };
   const updateChannel = resolveDesktopUpdateChannel(version);
-  const publishConfig = resolveGitHubPublishConfig(updateChannel);
+  const publishConfig = resolveGitHubPublishConfig(updateChannel, forkRepo);
   if (publishConfig) {
     buildConfig.publish = [publishConfig];
   } else if (mockUpdates) {
@@ -596,12 +612,12 @@ const createBuildConfig = Effect.fn("createBuildConfig")(function* (
   if (platform === "linux") {
     buildConfig.linux = {
       target: [target],
-      executableName: "t3code",
+      executableName: forkSlug,
       icon: "icon.png",
       category: "Development",
       desktop: {
         entry: {
-          StartupWMClass: "t3code",
+          StartupWMClass: forkSlug,
         },
       },
     };
@@ -713,7 +729,7 @@ const buildDesktopArtifact = Effect.fn("buildDesktopArtifact")(function* (
   const commitHash = yield* resolveGitCommitHash(repoRoot);
   const mkdir = options.keepStage ? fs.makeTempDirectory : fs.makeTempDirectoryScoped;
   const stageRoot = yield* mkdir({
-    prefix: `t3code-desktop-${options.platform}-stage-`,
+    prefix: `${getForkSlug()}-desktop-${options.platform}-stage-`,
   });
 
   const stageAppDir = path.join(stageRoot, "app");
@@ -776,12 +792,12 @@ const buildDesktopArtifact = Effect.fn("buildDesktopArtifact")(function* (
   yield* fs.copy(stageResourcesDir, path.join(stageAppDir, "apps/desktop/prod-resources"));
 
   const stagePackageJson: StagePackageJson = {
-    name: "t3code",
+    name: getForkSlug(),
     version: appVersion,
     buildVersion: appVersion,
     t3codeCommitHash: commitHash,
     private: true,
-    description: "T3 Maestro desktop build",
+    description: `${getForkAppName()} desktop build`,
     author: "T3 Tools",
     main: "apps/desktop/dist-electron/main.cjs",
     build: yield* createBuildConfig(
@@ -940,7 +956,7 @@ const buildDesktopArtifactCli = Command.make("build-desktop-artifact", {
     Flag.optional,
   ),
 }).pipe(
-  Command.withDescription("Build a desktop artifact for T3 Maestro."),
+  Command.withDescription(`Build a desktop artifact for ${getForkAppName()}.`),
   Command.withHandler((input) => Effect.flatMap(resolveBuildOptions(input), buildDesktopArtifact)),
 );
 

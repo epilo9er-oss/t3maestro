@@ -17,8 +17,19 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const isDevelopment = Boolean(process.env.VITE_DEV_SERVER_URL);
-const APP_DISPLAY_NAME = isDevelopment ? "T3 Maestro (Dev)" : "T3 Maestro (Alpha)";
-const APP_BUNDLE_ID = isDevelopment ? "com.t3tools.t3code.dev" : "com.t3tools.t3code";
+
+// Read fork branding from environment with upstream defaults
+function readForkEnv(key, fallback) {
+  const value = process.env[key]?.trim();
+  return value && value.length > 0 ? value : fallback;
+}
+
+const FORK_APP_NAME = readForkEnv("T3_FORK_APP_NAME", "T3 Code");
+const FORK_DOMAIN = readForkEnv("T3_FORK_DOMAIN", "com.t3tools");
+const FORK_SLUG = readForkEnv("T3_FORK_SLUG", "t3code");
+
+const APP_DISPLAY_NAME = isDevelopment ? `${FORK_APP_NAME} (Dev)` : `${FORK_APP_NAME} (Alpha)`;
+const APP_BUNDLE_ID = isDevelopment ? `${FORK_DOMAIN}.${FORK_SLUG}.dev` : `${FORK_DOMAIN}.${FORK_SLUG}`;
 const LAUNCHER_VERSION = 2;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
