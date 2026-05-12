@@ -42,6 +42,7 @@ describe("parseDiffRouteSearch", () => {
   it("drops turn and file values when diff is closed", () => {
     const parsed = parseDiffRouteSearch({
       diff: "0",
+      diffScope: "git",
       diffTurnId: "turn-1",
       diffFilePath: "src/app.ts",
     });
@@ -69,6 +70,43 @@ describe("parseDiffRouteSearch", () => {
 
     expect(parsed).toEqual({
       diff: "1",
+    });
+  });
+
+  it("leaves diff scope unset when absent", () => {
+    expect(
+      parseDiffRouteSearch({
+        diff: "1",
+      }),
+    ).toEqual({
+      diff: "1",
+    });
+  });
+
+  it("drops invalid diff scope values", () => {
+    expect(
+      parseDiffRouteSearch({
+        diff: "1",
+        diffScope: "workspace",
+      }),
+    ).toEqual({
+      diff: "1",
+    });
+  });
+
+  it("preserves turn and file state in git diff scope", () => {
+    expect(
+      parseDiffRouteSearch({
+        diff: "1",
+        diffScope: "git",
+        diffTurnId: "turn-1",
+        diffFilePath: "src/app.ts",
+      }),
+    ).toEqual({
+      diff: "1",
+      diffScope: "git",
+      diffTurnId: "turn-1",
+      diffFilePath: "src/app.ts",
     });
   });
 });

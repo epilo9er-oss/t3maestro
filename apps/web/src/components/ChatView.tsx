@@ -3510,9 +3510,16 @@ export default function ChatView(props: ChatViewProps) {
         },
         search: (previous) => {
           const rest = stripDiffSearchParams(previous);
+          // MARK: original 코드에는 diffScope: "session" 이 없다.
           return filePath
-            ? { ...rest, diff: "1", diffTurnId: turnId, diffFilePath: filePath }
-            : { ...rest, diff: "1", diffTurnId: turnId };
+            ? {
+                ...rest,
+                diff: "1",
+                diffScope: "session",
+                diffTurnId: turnId,
+                diffFilePath: filePath,
+              }
+            : { ...rest, diff: "1", diffScope: "session", diffTurnId: turnId };
         },
       });
     },

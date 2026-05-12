@@ -2,6 +2,7 @@ import {
   type GitActionProgressEvent,
   type GitRunStackedActionInput,
   type GitRunStackedActionResult,
+  type VcsDiffResult,
   type VcsStatusResult,
   type VcsStatusStreamEvent,
   type LocalApi,
@@ -85,6 +86,7 @@ export interface WsRpcClient {
   };
   readonly vcs: {
     readonly pull: RpcUnaryMethod<typeof WS_METHODS.vcsPull>;
+    readonly diff: RpcUnaryMethod<typeof WS_METHODS.vcsDiff>;
     readonly refreshStatus: RpcUnaryMethod<typeof WS_METHODS.vcsRefreshStatus>;
     readonly onStatus: (
       input: RpcInput<typeof WS_METHODS.subscribeVcsStatus>,
@@ -195,6 +197,7 @@ export function createWsRpcClient(transport: WsTransport): WsRpcClient {
     },
     vcs: {
       pull: (input) => transport.request((client) => client[WS_METHODS.vcsPull](input)),
+      diff: (input) => transport.request((client) => client[WS_METHODS.vcsDiff](input)),
       refreshStatus: (input) =>
         transport.request((client) => client[WS_METHODS.vcsRefreshStatus](input)),
       onStatus: (input, listener, options) => {

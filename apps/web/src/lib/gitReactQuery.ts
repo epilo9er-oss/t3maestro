@@ -1,5 +1,5 @@
 import {
-  type EnvironmentId,
+  EnvironmentId,
   type GitActionProgressEvent,
   type GitStackedAction,
   type SourceControlPublishRepositoryInput,
@@ -14,12 +14,16 @@ import {
 import { ensureEnvironmentApi } from "../environmentApi";
 import { requireEnvironmentConnection } from "../environments/runtime";
 
+const GIT_STATUS_STALE_TIME_MS = 5_000;
+const GIT_STATUS_REFETCH_INTERVAL_MS = 15_000;
 const GIT_BRANCHES_STALE_TIME_MS = 15_000;
 const GIT_BRANCHES_REFETCH_INTERVAL_MS = 60_000;
 const GIT_BRANCHES_PAGE_SIZE = 100;
 
 export const gitQueryKeys = {
   all: ["git"] as const,
+  diff: (environmentId: EnvironmentId | null, cwd: string | null) =>
+    ["git", "diff", environmentId ?? null, cwd] as const,
   refs: (environmentId: EnvironmentId | null, cwd: string | null) =>
     ["git", "refs", environmentId ?? null, cwd] as const,
   branchSearch: (environmentId: EnvironmentId | null, cwd: string | null, query: string) =>
@@ -64,6 +68,53 @@ function invalidateGitBranchQueries(
   }
 
   return queryClient.invalidateQueries({ queryKey: gitQueryKeys.refs(environmentId, cwd) });
+}
+
+export function invalidateGitDiffQueries(
+  queryClient: QueryClient,
+  environmentId: EnvironmentId | null,
+  cwd: string | null,
+) {
+  if (cwd === null) {
+    return Promise.resolve();
+  }
+
+  return queryClient.invalidateQueries({
+    queryKey: gitQueryKeys.diff(environmentId, cwd),
+  });
+}
+
+export function gitDiffQueryOptions(input: {
+  environmentId: EnvironmentId | null;
+  cwd: string | null;
+  enabled?: boolean;
+}) {
+  return queryOptions({
+    queryKey: gitQueryKeys.diff(input.environmentId, input.cwd),
+
+    queryFn: async () => {
+      if (!input.cwd) {
+        throw new Error("Git diff is unavailable.");
+      }
+
+      if (!input.environmentId) {
+        throw new Error("Git diff is unavailable.");
+      }
+
+      const api = ensureEnvironmentApi(input.environmentId);
+
+      return api.vcs.diff({
+        cwd: input.cwd,
+      });
+    },
+
+    enabled: input.environmentId !== null && input.cwd !== null && (input.enabled ?? true),
+
+    staleTime: GIT_STATUS_STALE_TIME_MS,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: GIT_STATUS_REFETCH_INTERVAL_MS,
+  });
 }
 
 /**
