@@ -42,7 +42,6 @@ import { formatShortTimestamp } from "../timestampFormat";
 import { DiffPanelLoadingState, DiffPanelShell, type DiffPanelMode } from "./DiffPanelShell";
 import { ToggleGroup, Toggle } from "./ui/toggle-group";
 import { gitDiffQueryOptions } from "~/lib/gitReactQuery";
-import { VscodeEntryIcon } from "./chat/VscodeEntryIcon";
 
 type DiffRenderMode = "stacked" | "split";
 type DiffThemeType = "light" | "dark";
@@ -197,31 +196,31 @@ function getFileDiffLineStats(fileDiff: FileDiffMetadata) {
   );
 }
 
-function getFileDiffChangeLabel(fileDiff: FileDiffMetadata): string {
-  switch (fileDiff.type) {
-    case "new":
-      return "Added";
-    case "deleted":
-      return "Removed";
-    case "rename-pure":
-      return "Renamed";
-    case "rename-changed":
-      return "Renamed and modified";
-    default:
-      return "Modified";
-  }
-}
+// function getFileDiffChangeLabel(fileDiff: FileDiffMetadata): string {
+//   switch (fileDiff.type) {
+//     case "new":
+//       return "Added";
+//     case "deleted":
+//       return "Removed";
+//     case "rename-pure":
+//       return "Renamed";
+//     case "rename-changed":
+//       return "Renamed and modified";
+//     default:
+//       return "Modified";
+//   }
+// }
 
-function getFileDiffNameClasses(fileDiff: FileDiffMetadata): string {
-  switch (fileDiff.type) {
-    case "new":
-      return "text-emerald-600 dark:text-emerald-400";
-    case "deleted":
-      return "text-rose-600 dark:text-rose-400";
-    default:
-      return "text-foreground";
-  }
-}
+// function getFileDiffNameClasses(fileDiff: FileDiffMetadata): string {
+//   switch (fileDiff.type) {
+//     case "new":
+//       return "text-emerald-600 dark:text-emerald-400";
+//     case "deleted":
+//       return "text-rose-600 dark:text-rose-400";
+//     default:
+//       return "text-foreground";
+//   }
+// }
 
 function getDiffCollapseIconClassName(fileDiff: FileDiffMetadata): string {
   switch (fileDiff.type) {
@@ -421,7 +420,7 @@ export default function DiffPanel({ mode = "inline" }: DiffPanelProps) {
   // }, [resolvedTheme, selectedPatch, isSessionDiffScope]);
   const renderablePatch = useMemo(
     () => getRenderablePatch(selectedPatch, `diff-panel:${resolvedTheme}`),
-    [resolvedTheme, selectedPatch, isSessionDiffScope],
+    [resolvedTheme, selectedPatch],
   );
   const renderableFiles = useMemo(() => {
     if (!renderablePatch || renderablePatch.kind !== "files") {
@@ -492,6 +491,29 @@ export default function DiffPanel({ mode = "inline" }: DiffPanelProps) {
       JSON.stringify([...collapsedDiffFileKeys]),
     );
   }, [activeCwd, collapsedDiffFileKeys, isSessionDiffScope]);
+
+  useEffect(() => {
+    if (isSessionDiffScope || typeof window === "undefined" || !activeCwd) {
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem(getWorkingTreeCollapsedStorageKey(activeCwd));
+      if (!raw) {
+        setCollapsedDiffFileKeys(new Set());
+        return;
+      }
+      const parsed: unknown = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        setCollapsedDiffFileKeys(new Set());
+        return;
+      }
+      setCollapsedDiffFileKeys(
+        new Set(parsed.filter((value): value is string => typeof value === "string")),
+      );
+    } catch {
+      setCollapsedDiffFileKeys(new Set());
+    }
+  }, [activeCwd, isSessionDiffScope]);
 
   useEffect(() => {
     if (!isSessionDiffScope || !selectedFilePath || !patchViewportRef.current) {

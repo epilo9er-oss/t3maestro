@@ -155,7 +155,8 @@ function parseBranchLine(line: string): { name: string; current: boolean } | nul
 function parseNullSeparatedLines(stdout: string): string[] {
   return stdout
     .split("\u0000")
-    .map((value) => value.trim())
+    // 공백도 파일명으로 들어갈 수 있기 떄문에 위험함
+    // .map((value) => value.trim())
     .filter((value) => value.length > 0);
 }
 
@@ -1679,7 +1680,8 @@ export const makeGitVcsDriverCore = Effect.fn("makeGitVcsDriverCore")(function* 
             maxOutputBytes: LARGE_DIFF_MAX_OUTPUT_BYTES,
           },
         ).pipe(Effect.map((patch) => patch.trim())),
-      { concurrency: "unbounded" },
+      // "unbounded"는 대형 코드에서 위험할 수 있으므로 병렬 상한 제한
+      { concurrency: 8 },
     );
 
     const diff = [...trackedPatchSegments, ...untrackedPatches]
