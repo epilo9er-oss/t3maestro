@@ -52,6 +52,11 @@ export const DesktopConfig = Config.all({
   mockUpdateServerPort: Config.port("T3CODE_DESKTOP_MOCK_UPDATE_SERVER_PORT").pipe(
     Config.withDefault(3000),
   ),
+  // Fork branding configuration - allows customization without merge conflicts
+  forkAppName: trimmedString("T3_FORK_APP_NAME"),
+  forkDomain: trimmedString("T3_FORK_DOMAIN"),
+  forkSlug: trimmedString("T3_FORK_SLUG"),
+  forkRepo: trimmedString("T3_FORK_REPO"),
 });
 
 export const layerTest = (env: Readonly<Record<string, string | undefined>>) =>

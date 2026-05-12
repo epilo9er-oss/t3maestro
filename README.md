@@ -44,6 +44,48 @@ mise install
 > 공식적인 기여나 최신 업데이트 사항은 원본 저장소인
 > [T3Code](https://github.com/pingdotgg/t3code)를 확인해 주시기 바랍니다.
 
+# 🎨 Fork Branding Customization
+
+T3 Maestro는 **환경 변수 기반의 브랜딩 커스터마이제이션 시스템**을 제공하여, 업스트림(T3 Code)과의 병합 충돌 없이 독립적인 브랜딩을 유지할 수 있습니다.
+
+## Quick Setup
+
+```bash
+# 1. 브랜딩 설정 파일 복사
+cp .env.fork.example .env.fork
+
+# 2. 브랜딩 값 편집 (선택 사항 - 현재 T3 Maestro 값으로 설정됨)
+# .env.fork:
+#   T3_FORK_APP_NAME=T3 Maestro
+#   T3_FORK_DOMAIN=com.t3tools
+#   T3_FORK_SLUG=t3maestro
+#   T3_FORK_REPO=pingdotgg/t3maestro
+
+# 3. 브랜딩 적용 상태 확인
+bun run verify-fork-branding
+
+# 4. (선택사항) 업스트림 병합 후 하드코딩된 브랜딩 검사
+bun run fork:fix-branding
+```
+
+## 환경 변수
+
+| 변수               | 설명                       | 기본값               |
+| ------------------ | -------------------------- | -------------------- |
+| `T3_FORK_APP_NAME` | 앱 표시 이름               | `T3 Maestro`         |
+| `T3_FORK_DOMAIN`   | 번들 ID 도메인 (macOS)     | `com.epilo9er`       |
+| `T3_FORK_SLUG`     | URL/파일용 식별자          | `t3maestro`          |
+| `T3_FORK_REPO`     | GitHub 저장소 (owner/repo) | `epilo9er/t3maestro` |
+
+## 적용되는 항목
+
+- **데스크톱 앱 번들 ID** (macOS): `com.epilo9er.t3maestro`
+- **실행 파일 이름** (Linux): `t3maestro`
+- **사용자 데이터 디렉토리**: `~/.t3/t3maestro`
+- **앱 표시 이름**: "T3 Maestro (Alpha)"
+
+빌드 시 `T3_FORK_*` 환경 변수가 자동으로 적용됩니다. 자세한 내용은 [docs/fork-branding.md](./docs/fork-branding.md)를 참조하세요.
+
 # 📝 Reference & Notes
 
 - Observability Guide: 상세 내용은 [docs/observability.md](./docs/observability.md)를 참조하세요.

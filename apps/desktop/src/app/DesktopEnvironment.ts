@@ -80,8 +80,6 @@ export class DesktopEnvironment extends Context.Service<
   DesktopEnvironmentShape
 >()("t3/desktop/Environment") {}
 
-const APP_BASE_NAME = "T3 Maestro";
-
 function resolveDesktopAppStageLabel(input: {
   readonly isDevelopment: boolean;
   readonly appVersion: string;
@@ -91,18 +89,6 @@ function resolveDesktopAppStageLabel(input: {
   }
 
   return isNightlyDesktopVersion(input.appVersion) ? "Nightly" : "Alpha";
-}
-
-function resolveDesktopAppBranding(input: {
-  readonly isDevelopment: boolean;
-  readonly appVersion: string;
-}): DesktopAppBranding {
-  const stageLabel = resolveDesktopAppStageLabel(input);
-  return {
-    baseName: APP_BASE_NAME,
-    stageLabel,
-    displayName: `${APP_BASE_NAME} (${stageLabel})`,
-  };
 }
 
 function normalizeDesktopArch(arch: string): DesktopRuntimeArch {
@@ -154,14 +140,27 @@ const makeDesktopEnvironment = Effect.fn("desktop.environment.make")(function* (
   const baseDir = Option.getOrElse(config.t3Home, () => path.join(homeDirectory, ".t3"));
   const rootDir = path.resolve(input.dirname, "../../..");
   const appRoot = input.isPackaged ? input.appPath : rootDir;
-  const branding = resolveDesktopAppBranding({
+
+  // Resolve branding using config values with fallback to upstream defaults
+  const stageLabel = resolveDesktopAppStageLabel({
     isDevelopment,
     appVersion: input.appVersion,
   });
+  const forkAppName = Option.getOrElse(config.forkAppName, () => "T3 Maestro");
+  const branding: DesktopAppBranding = {
+    baseName: forkAppName,
+    stageLabel,
+    displayName: `${forkAppName} (${stageLabel})`,
+  };
   const displayName = branding.displayName;
+
+  // Resolve fork domain/slug with upstream defaults
+  const forkDomain = Option.getOrElse(config.forkDomain, () => "com.epilo9er");
+  const forkSlug = Option.getOrElse(config.forkSlug, () => "t3maestro");
+
   const stateDir = path.join(baseDir, isDevelopment ? "dev" : "userdata");
-  const userDataDirName = isDevelopment ? "t3code-dev" : "t3code";
-  const legacyUserDataDirName = isDevelopment ? "T3 Maestro (Dev)" : "T3 Maestro (Alpha)";
+  const userDataDirName = isDevelopment ? `${forkSlug}-dev` : forkSlug;
+  const legacyUserDataDirName = isDevelopment ? `${forkAppName} (Dev)` : `${forkAppName} (Alpha)`;
   const resourcesPath = input.resourcesPath;
 
   return DesktopEnvironment.of({
@@ -199,9 +198,9 @@ const makeDesktopEnvironment = Effect.fn("desktop.environment.make")(function* (
     otlpExportIntervalMs: config.otlpExportIntervalMs,
     branding,
     displayName,
-    appUserModelId: isDevelopment ? "com.t3tools.t3code.dev" : "com.t3tools.t3code",
-    linuxDesktopEntryName: isDevelopment ? "t3code-dev.desktop" : "t3code.desktop",
-    linuxWmClass: isDevelopment ? "t3code-dev" : "t3code",
+    appUserModelId: isDevelopment ? `${forkDomain}.${forkSlug}.dev` : `${forkDomain}.${forkSlug}`,
+    linuxDesktopEntryName: isDevelopment ? `${forkSlug}-dev.desktop` : `${forkSlug}.desktop`,
+    linuxWmClass: isDevelopment ? `${forkSlug}-dev` : forkSlug,
     userDataDirName,
     legacyUserDataDirName,
     defaultDesktopSettings: resolveDefaultDesktopSettings(input.appVersion),
