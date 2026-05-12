@@ -199,19 +199,8 @@ export function useThreadActions() {
         deletedThreadIds,
         sortOrder: sidebarThreadSortOrder,
       });
-      await api.orchestration.dispatchCommand({
-        type: "thread.delete",
-        commandId: newCommandId(),
-        threadId: threadRef.threadId,
-      });
-      refreshArchivedThreadsForEnvironment(threadRef.environmentId);
-      clearComposerDraftForThread(threadRef);
-      clearProjectDraftThreadById(
-        scopeProjectRef(threadRef.environmentId, thread.projectId),
-        threadRef,
-      );
-      clearTerminalState(threadRef);
 
+      // Navigate BEFORE deleting to avoid React error #185 (updating during render)
       if (shouldNavigateToFallback) {
         if (fallbackThreadId) {
           const fallbackThread = selectThreadByRef(
@@ -233,6 +222,19 @@ export function useThreadActions() {
           await router.navigate({ to: "/", replace: true });
         }
       }
+
+      await api.orchestration.dispatchCommand({
+        type: "thread.delete",
+        commandId: newCommandId(),
+        threadId: threadRef.threadId,
+      });
+      refreshArchivedThreadsForEnvironment(threadRef.environmentId);
+      clearComposerDraftForThread(threadRef);
+      clearProjectDraftThreadById(
+        scopeProjectRef(threadRef.environmentId, thread.projectId),
+        threadRef,
+      );
+      clearTerminalState(threadRef);
 
       if (!shouldDeleteWorktree || !orphanedWorktreePath || !threadProject) {
         return;
