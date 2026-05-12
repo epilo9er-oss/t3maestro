@@ -2887,7 +2887,7 @@ export default function ChatView(props: ChatViewProps) {
                   prepareWorktree: {
                     projectCwd: activeProject.cwd,
                     baseBranch: baseBranchForWorktree,
-                    branch: temporaryBranchName!, // 안전하게 존재
+                    branch: temporaryBranchName!, // Guaranteed to exist
                   },
                   runSetupScript: true,
                 }),
