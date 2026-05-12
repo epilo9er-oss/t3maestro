@@ -1623,7 +1623,15 @@ export const makeGitVcsDriverCore = Effect.fn("makeGitVcsDriverCore")(function* 
             runGitStdoutWithOptions(
               "GitCore.readWorkingTreeDiff.cachedRootPatch",
               cwd,
-              ["diff", "--src-prefix=a/", "--dst-prefix=b/", "--cached", "--patch", "--minimal", "--root"],
+              [
+                "diff",
+                "--src-prefix=a/",
+                "--dst-prefix=b/",
+                "--cached",
+                "--patch",
+                "--minimal",
+                "--root",
+              ],
               {
                 maxOutputBytes: LARGE_DIFF_MAX_OUTPUT_BYTES,
               },
@@ -1655,7 +1663,17 @@ export const makeGitVcsDriverCore = Effect.fn("makeGitVcsDriverCore")(function* 
         runGitStdoutWithOptions(
           "GitCore.readWorkingTreeDiff.untrackedPatch",
           cwd,
-          ["diff", "--src-prefix=a/", "--dst-prefix=b/", "--no-index", "--patch", "--minimal", "--", "/dev/null", relativePath],
+          [
+            "diff",
+            "--src-prefix=a/",
+            "--dst-prefix=b/",
+            "--no-index",
+            "--patch",
+            "--minimal",
+            "--",
+            "/dev/null",
+            relativePath,
+          ],
           {
             allowNonZeroExit: true,
             maxOutputBytes: LARGE_DIFF_MAX_OUTPUT_BYTES,

@@ -419,9 +419,9 @@ export default function DiffPanel({ mode = "inline" }: DiffPanelProps) {
   //       : selectedPatch;
   //   return getRenderablePatch(patch, `diff-panel:${resolvedTheme}`);
   // }, [resolvedTheme, selectedPatch, isSessionDiffScope]);
-  const renderablePatch = useMemo(() =>
-    getRenderablePatch(selectedPatch, `diff-panel:${resolvedTheme}`),
-    [resolvedTheme, selectedPatch, isSessionDiffScope]
+  const renderablePatch = useMemo(
+    () => getRenderablePatch(selectedPatch, `diff-panel:${resolvedTheme}`),
+    [resolvedTheme, selectedPatch, isSessionDiffScope],
   );
   const renderableFiles = useMemo(() => {
     if (!renderablePatch || renderablePatch.kind !== "files") {
