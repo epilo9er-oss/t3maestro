@@ -2862,32 +2862,37 @@ export default function ChatView(props: ChatViewProps) {
       const turnAttachments = await turnAttachmentsPromise;
       const bootstrap =
         isLocalDraftThread || baseBranchForWorktree
-          ? {
-              ...(isLocalDraftThread
-                ? {
-                    createThread: {
-                      projectId: activeProject.id,
-                      title,
-                      modelSelection: threadCreateModelSelection,
-                      runtimeMode,
-                      interactionMode,
-                      branch: activeThreadBranch,
-                      worktreePath: activeThread.worktreePath,
-                      createdAt: activeThread.createdAt,
-                    },
-                  }
-                : {}),
-              ...(baseBranchForWorktree
-                ? {
-                    prepareWorktree: {
-                      projectCwd: activeProject.cwd,
-                      baseBranch: baseBranchForWorktree,
-                      branch: buildTemporaryWorktreeBranchName(worktreePrefix),
-                    },
-                    runSetupScript: true,
-                  }
-                : {}),
-            }
+          ? (() => {
+              // temporary branch name은 한 번만 계산
+              const temporaryBranchName = baseBranchForWorktree
+                ? buildTemporaryWorktreeBranchName(worktreePrefix)
+                : undefined;
+
+              return {
+                ...(isLocalDraftThread && {
+                  createThread: {
+                    projectId: activeProject.id,
+                    title,
+                    modelSelection: threadCreateModelSelection,
+                    runtimeMode,
+                    interactionMode,
+                    // baseBranchForWorktree가 있으면 temporary branch 사용
+                    branch: temporaryBranchName ?? activeThreadBranch,
+                    worktreePath: activeThread.worktreePath,
+                    createdAt: activeThread.createdAt,
+                  },
+                }),
+
+                ...(baseBranchForWorktree && {
+                  prepareWorktree: {
+                    projectCwd: activeProject.cwd,
+                    baseBranch: baseBranchForWorktree,
+                    branch: temporaryBranchName!, // 안전하게 존재
+                  },
+                  runSetupScript: true,
+                }),
+              };
+            })()
           : undefined;
       beginLocalDispatch({ preparingWorktree: false });
       await api.orchestration.dispatchCommand({
