@@ -24,12 +24,14 @@ function readForkEnv(key, fallback) {
   return value && value.length > 0 ? value : fallback;
 }
 
-const FORK_APP_NAME = readForkEnv("T3_FORK_APP_NAME", "T3 Code");
-const FORK_DOMAIN = readForkEnv("T3_FORK_DOMAIN", "com.t3tools");
-const FORK_SLUG = readForkEnv("T3_FORK_SLUG", "t3code");
+const FORK_APP_NAME = readForkEnv("T3_FORK_APP_NAME", "T3 Maestro");
+const FORK_DOMAIN = readForkEnv("T3_FORK_DOMAIN", "com.epilo9er");
+const FORK_SLUG = readForkEnv("T3_FORK_SLUG", "t3maestro");
 
 const APP_DISPLAY_NAME = isDevelopment ? `${FORK_APP_NAME} (Dev)` : `${FORK_APP_NAME} (Alpha)`;
-const APP_BUNDLE_ID = isDevelopment ? `${FORK_DOMAIN}.${FORK_SLUG}.dev` : `${FORK_DOMAIN}.${FORK_SLUG}`;
+const APP_BUNDLE_ID = isDevelopment
+  ? `${FORK_DOMAIN}.${FORK_SLUG}.dev`
+  : `${FORK_DOMAIN}.${FORK_SLUG}`;
 const LAUNCHER_VERSION = 2;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

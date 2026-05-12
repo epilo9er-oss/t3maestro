@@ -146,7 +146,7 @@ const makeDesktopEnvironment = Effect.fn("desktop.environment.make")(function* (
     isDevelopment,
     appVersion: input.appVersion,
   });
-  const forkAppName = Option.getOrElse(config.forkAppName, () => "T3 Code");
+  const forkAppName = Option.getOrElse(config.forkAppName, () => "T3 Maestro");
   const branding: DesktopAppBranding = {
     baseName: forkAppName,
     stageLabel,
@@ -155,8 +155,8 @@ const makeDesktopEnvironment = Effect.fn("desktop.environment.make")(function* (
   const displayName = branding.displayName;
 
   // Resolve fork domain/slug with upstream defaults
-  const forkDomain = Option.getOrElse(config.forkDomain, () => "com.t3tools");
-  const forkSlug = Option.getOrElse(config.forkSlug, () => "t3code");
+  const forkDomain = Option.getOrElse(config.forkDomain, () => "com.epilo9er");
+  const forkSlug = Option.getOrElse(config.forkSlug, () => "t3maestro");
 
   const stateDir = path.join(baseDir, isDevelopment ? "dev" : "userdata");
   const userDataDirName = isDevelopment ? `${forkSlug}-dev` : forkSlug;

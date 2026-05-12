@@ -11,7 +11,7 @@ function readInjectedDesktopAppBranding(): DesktopAppBranding | null {
 const injectedDesktopAppBranding = readInjectedDesktopAppBranding();
 const hostedAppChannel = import.meta.env.VITE_HOSTED_APP_CHANNEL?.trim().toLowerCase();
 const configuredForkAppName = import.meta.env.T3_FORK_APP_NAME?.trim() || "";
-const forkAppNameOrDefault = configuredForkAppName || "T3 Code";
+const forkAppNameOrDefault = configuredForkAppName || "T3 Maestro";
 
 export const HOSTED_APP_CHANNEL =
   hostedAppChannel === "latest" || hostedAppChannel === "nightly" ? hostedAppChannel : null;

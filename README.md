@@ -70,16 +70,16 @@ bun run fork:fix-branding
 
 ## 환경 변수
 
-| 변수 | 설명 | 기본값 |
-|------|------|--------|
-| `T3_FORK_APP_NAME` | 앱 표시 이름 | `T3 Code` |
-| `T3_FORK_DOMAIN` | 번들 ID 도메인 (macOS) | `com.t3tools` |
-| `T3_FORK_SLUG` | URL/파일용 식별자 | `t3code` |
-| `T3_FORK_REPO` | GitHub 저장소 (owner/repo) | `pingdotgg/t3code` |
+| 변수               | 설명                       | 기본값               |
+| ------------------ | -------------------------- | -------------------- |
+| `T3_FORK_APP_NAME` | 앱 표시 이름               | `T3 Maestro`         |
+| `T3_FORK_DOMAIN`   | 번들 ID 도메인 (macOS)     | `com.epilo9er`       |
+| `T3_FORK_SLUG`     | URL/파일용 식별자          | `t3maestro`          |
+| `T3_FORK_REPO`     | GitHub 저장소 (owner/repo) | `epilo9er/t3maestro` |
 
 ## 적용되는 항목
 
-- **데스크톱 앱 번들 ID** (macOS): `com.t3tools.t3maestro`
+- **데스크톱 앱 번들 ID** (macOS): `com.epilo9er.t3maestro`
 - **실행 파일 이름** (Linux): `t3maestro`
 - **사용자 데이터 디렉토리**: `~/.t3/t3maestro`
 - **앱 표시 이름**: "T3 Maestro (Alpha)"

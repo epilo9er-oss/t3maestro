@@ -14,7 +14,6 @@ import {
   getForkRepo,
   isForkBrandingActive,
   resolveAppBundleId,
-  resolveAppBaseName,
   resolveLinuxDesktopEntryName,
   resolveLinuxWmClass,
   resolveUserDataDirName,

@@ -5,12 +5,6 @@ import desktopPackageJson from "../apps/desktop/package.json" with { type: "json
 import serverPackageJson from "../apps/server/package.json" with { type: "json" };
 
 import { BRAND_ASSET_PATHS } from "./lib/brand-assets.ts";
-import {
-  getForkAppName,
-  getForkDomain,
-  getForkSlug,
-  getForkRepo,
-} from "../packages/shared/src/branding.ts";
 import { getDefaultBuildArch } from "./lib/build-target-arch.ts";
 import { resolveCatalogDependencies } from "./lib/resolve-catalog.ts";
 
@@ -28,6 +22,35 @@ import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import { Command, Flag } from "effect/unstable/cli";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+
+// Fork branding helpers - inlined to avoid cross-package project references
+const UPSTREAM_DEFAULTS = {
+  appName: "T3 Maestro",
+  domain: "com.epilo9er",
+  slug: "t3maestro",
+  repo: "epilo9er/t3maestro",
+} as const;
+
+function readForkEnv(value: string | undefined, fallback: string): string {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : fallback;
+}
+
+function getForkAppName(): string {
+  return readForkEnv(process.env.T3_FORK_APP_NAME, UPSTREAM_DEFAULTS.appName);
+}
+
+function getForkDomain(): string {
+  return readForkEnv(process.env.T3_FORK_DOMAIN, UPSTREAM_DEFAULTS.domain);
+}
+
+function getForkSlug(): string {
+  return readForkEnv(process.env.T3_FORK_SLUG, UPSTREAM_DEFAULTS.slug);
+}
+
+function getForkRepo(): string {
+  return readForkEnv(process.env.T3_FORK_REPO, UPSTREAM_DEFAULTS.repo);
+}
 
 const BuildPlatform = Schema.Literals(["mac", "linux", "win"]);
 const BuildArch = Schema.Literals(["arm64", "x64", "universal"]);
@@ -577,13 +600,12 @@ const createBuildConfig = Effect.fn("createBuildConfig")(function* (
   // Read fork branding from environment with upstream defaults
   const forkDomain = getForkDomain();
   const forkSlug = getForkSlug();
-  const forkAppName = getForkAppName();
   const forkRepo = getForkRepo();
 
   const buildConfig: Record<string, unknown> = {
     appId: `${forkDomain}.${forkSlug}`,
     productName: resolveDesktopProductName(version),
-    artifactName: `${forkSlug.replace(/[^a-z0-9-]/gi, "-")}-${version}-${arch}.${ext}`,
+    artifactName: `${forkSlug.replace(/[^a-z0-9-]/gi, "-")}-\${version}-\${arch}.\${ext}`,
     directories: {
       buildResources: "apps/desktop/resources",
     },

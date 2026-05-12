@@ -30,22 +30,10 @@ const PATTERNS = [
 ];
 
 // Directories to scan
-const SCAN_DIRS = [
-  "apps",
-  "packages",
-  "scripts",
-];
+const SCAN_DIRS = ["apps", "packages", "scripts"];
 
 // File extensions to scan
-const SCAN_EXTENSIONS = [
-  ".ts",
-  ".tsx",
-  ".js",
-  ".mjs",
-  ".cjs",
-  ".json",
-  ".md",
-];
+const SCAN_EXTENSIONS = [".ts", ".tsx", ".js", ".mjs", ".cjs", ".json", ".md"];
 
 // Files to ignore
 const IGNORE_PATHS = [
@@ -69,9 +57,6 @@ const IGNORE_PATHS = [
   "CHANGELOG.md",
   "CLAUDE.md",
 ];
-
-// Ignore test files by default (can override with --include-tests flag)
-const IGNORE_TEST_FILES = true;
 
 interface Issue {
   file: string;
@@ -112,7 +97,9 @@ function scanFile(filePath: string): Issue[] {
             trimmedLine.startsWith("*") ||
             trimmedLine.includes("upstream") ||
             trimmedLine.includes("default") ||
-            trimmedLine.includes("fallback")
+            trimmedLine.includes("fallback") ||
+            trimmedLine.includes("github.com/pingdotgg/t3code/issues") ||
+            trimmedLine.includes("pingdotgg/t3code/issues")
           ) {
             continue;
           }
@@ -214,7 +201,6 @@ function printReport(issuesByFile: FileIssues[]): void {
 function main() {
   const repoRoot = process.cwd();
   const args = process.argv.slice(2);
-  const fixMode = args.includes("--fix");
   const includeTests = args.includes("--include-tests");
 
   console.log("🔍 Scanning for hardcoded upstream branding...\n");

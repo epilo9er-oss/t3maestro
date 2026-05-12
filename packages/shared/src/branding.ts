@@ -7,18 +7,18 @@
  *
  * Environment Variables:
  * - T3_FORK_APP_NAME: Display name for the fork (e.g., "T3 Maestro")
- * - T3_FORK_DOMAIN: Organization domain (e.g., "com.t3tools")
+ * - T3_FORK_DOMAIN: Organization domain (e.g., "com.epilo9er")
  * - T3_FORK_SLUG: URL/file safe identifier (e.g., "t3maestro")
- * - T3_FORK_REPO: GitHub repo (e.g., "pingdotgg/t3maestro")
+ * - T3_FORK_REPO: GitHub repo (e.g., "epilo9er/t3maestro")
  */
 
 import type { DesktopAppBranding, DesktopAppStageLabel } from "@t3tools/contracts";
 
 const UPSTREAM_DEFAULTS = {
-  appName: "T3 Code",
-  domain: "com.t3tools",
-  slug: "t3code",
-  repo: "pingdotgg/t3code",
+  appName: "T3 Maestro",
+  domain: "com.epilo9er",
+  slug: "t3maestro",
+  repo: "epilo9er/t3maestro",
 } as const;
 
 /**
@@ -58,18 +58,22 @@ export function getForkRepo(): string {
 }
 
 /**
+ * Check if a value is a non-empty string.
+ */
+function isNonEmptyString(value: string | undefined): boolean {
+  const trimmed = value?.trim();
+  return trimmed !== undefined && trimmed.length > 0;
+}
+
+/**
  * Check if fork branding is active (any T3_FORK_* var is set).
  */
 export function isForkBrandingActive(): boolean {
-  const check = (value: string | undefined) => {
-    const trimmed = value?.trim();
-    return trimmed !== undefined && trimmed.length > 0;
-  };
   return (
-    check(process.env.T3_FORK_APP_NAME) ||
-    check(process.env.T3_FORK_DOMAIN) ||
-    check(process.env.T3_FORK_SLUG) ||
-    check(process.env.T3_FORK_REPO)
+    isNonEmptyString(process.env.T3_FORK_APP_NAME) ||
+    isNonEmptyString(process.env.T3_FORK_DOMAIN) ||
+    isNonEmptyString(process.env.T3_FORK_SLUG) ||
+    isNonEmptyString(process.env.T3_FORK_REPO)
   );
 }
 

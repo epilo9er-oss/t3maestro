@@ -12,12 +12,12 @@ The fork branding system uses environment variables to override default branding
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `T3_FORK_APP_NAME` | Display name for your fork | `T3 Code` |
-| `T3_FORK_DOMAIN` | Organization domain for bundle IDs | `com.t3tools` |
-| `T3_FORK_SLUG` | URL/file safe identifier | `t3code` |
-| `T3_FORK_REPO` | GitHub repository (owner/repo) | `pingdotgg/t3code` |
+| Variable           | Description                        | Default              |
+| ------------------ | ---------------------------------- | -------------------- |
+| `T3_FORK_APP_NAME` | Display name for your fork         | `T3 Maestro`         |
+| `T3_FORK_DOMAIN`   | Organization domain for bundle IDs | `com.epilo9er`       |
+| `T3_FORK_SLUG`     | URL/file safe identifier           | `t3maestro`          |
+| `T3_FORK_REPO`     | GitHub repository (owner/repo)     | `epilo9er/t3maestro` |
 
 ## Quick Start
 
@@ -31,9 +31,9 @@ The fork branding system uses environment variables to override default branding
 
    ```bash
    T3_FORK_APP_NAME=T3 Maestro
-   T3_FORK_DOMAIN=com.t3tools
+   T3_FORK_DOMAIN=com.epilo9er
    T3_FORK_SLUG=t3maestro
-   T3_FORK_REPO=pingdotgg/t3maestro
+   T3_FORK_REPO=epilo9er/t3maestro
    ```
 
 3. **Source the environment when building:**
@@ -56,7 +56,7 @@ The fork branding system uses environment variables to override default branding
 
 ### Desktop App
 
-- **App bundle ID** (macOS): `com.t3tools.t3maestro` instead of `com.t3tools.t3code`
+- **App bundle ID** (macOS): `com.epilo9er.t3maestro` instead of `com.t3tools.t3code`
 - **Executable name** (Linux): `t3maestro` instead of `t3code`
 - **User data directory**: `~/.t3/t3maestro` instead of `~/.t3/t3code`
 - **Display name**: "T3 Maestro (Alpha)" instead of "T3 Code (Alpha)"
@@ -97,11 +97,11 @@ Output example:
 Fork Branding Configuration
 ============================
 App Name:     T3 Maestro
-Domain:       com.t3tools
+Domain:       com.epilo9er
 Slug:         t3maestro
-Repo:         pingdotgg/t3maestro
+Repo:         epilo9er/t3maestro
 
-App Bundle ID: com.t3tools.t3maestro
+App Bundle ID: com.epilo9er.t3maestro
 Display Name:  T3 Maestro (Alpha)
 Data Dir:      ~/.t3/t3maestro
 ```
@@ -124,17 +124,20 @@ bun run fork:fix-branding
 ```
 
 This script scans for:
+
 - Hardcoded "T3 Code" strings
 - Hardcoded bundle IDs (`com.t3tools.t3code`)
 - Hardcoded slugs (`t3code`)
 - Hardcoded repo references (`pingdotgg/t3code`)
 
 If any issues are found, the script will:
+
 1. List all files with hardcoded branding
 2. Show the line numbers and matches
 3. Provide suggestions for fixing
 
 **Example output:**
+
 ```
 ⚠️  Found 3 potential branding issue(s):
 
@@ -144,12 +147,13 @@ If any issues are found, the script will:
 ```
 
 **Fix pattern:** Replace hardcoded values with environment variable reads:
+
 ```typescript
 // Before (conflict-prone):
 const APP_NAME = "T3 Code";
 
 // After (merge-friendly):
-const APP_NAME = process.env.T3_FORK_APP_NAME || "T3 Code";
+const APP_NAME = process.env.T3_FORK_APP_NAME || "T3 Maestro";
 ```
 
 ## Migration from Direct Modifications
