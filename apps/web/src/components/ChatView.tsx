@@ -2876,7 +2876,7 @@ export default function ChatView(props: ChatViewProps) {
                     modelSelection: threadCreateModelSelection,
                     runtimeMode,
                     interactionMode,
-                    // baseBranchForWorktree가 있으면 temporary branch 사용
+                    // Use temporary branch if baseBranchForWorktree is present
                     branch: temporaryBranchName ?? activeThreadBranch,
                     worktreePath: activeThread.worktreePath,
                     createdAt: activeThread.createdAt,
