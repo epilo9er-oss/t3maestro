@@ -579,10 +579,19 @@ const make = Effect.gen(function* () {
       const { textGenerationModelSelection: modelSelection } =
         yield* serverSettingsService.getSettings;
 
+      // Truncate message to avoid timeout with long content
+      // Branch name generation doesn't need full context
+      // TODO: Consider alternative truncation strategies for better context preservation:
+      //   Option 1: Use first 500-1000 chars (most requests fit in first paragraph)
+      //   Option 2: Use first N sentences for complete thoughts
+      //   Option 3: Use first paragraph only (main request usually there)
+      const truncatedMessage = input.messageText.slice(0, 2000);
+
       const generated = yield* textGeneration.generateBranchName({
         cwd,
-        message: input.messageText,
-        ...(attachments.length > 0 ? { attachments } : {}),
+        message: truncatedMessage,
+        // TODO: Consider including attachments for better branch name generation
+        // ...(attachments.length > 0 ? { attachments } : {}),
         modelSelection,
       });
       if (!generated) return;
