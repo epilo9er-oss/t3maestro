@@ -30,10 +30,15 @@ permissions:
   contents: write
   id-token: write
 
+env:
+  ENABLE_RELEASES: ${{ vars.ENABLE_RELEASES || 'false' }}
+
 jobs:
   check_changes:
     name: Check for changes since last nightly
-    if: github.event_name == 'schedule'
+    if: |
+      env.ENABLE_RELEASES == 'true' &&
+      github.event_name == 'schedule'
     runs-on: blacksmith-8vcpu-ubuntu-2404
     outputs:
       has_changes: ${{ steps.check.outputs.has_changes }}
@@ -68,6 +73,9 @@ jobs:
     name: Preflight
     needs: [check_changes]
     if: |
+      env.ENABLE_RELEASES == 'true' &&
+      !failure() && !cancelled() &&
+      (github.event_name != 'schedule' || needs.check_changes.outputs.has_changes == 'true')
       !failure() && !cancelled() &&
       (github.event_name != 'schedule' || needs.check_changes.outputs.has_changes == 'true')
     runs-on: blacksmith-8vcpu-ubuntu-2404
