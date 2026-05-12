@@ -156,7 +156,7 @@ export function useThreadActions() {
           ].join("\n"),
         ));
 
-      const canDeleteBranch = thread.branch !== null && threadProject !== undefined;
+      const canDeleteBranch = canDeleteWorktree && thread.branch !== null;
       const shouldDeleteBranch =
         canDeleteBranch &&
         localApi &&
