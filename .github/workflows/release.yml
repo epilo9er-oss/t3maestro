@@ -73,8 +73,6 @@ jobs:
       vars.ENABLE_RELEASES == 'true' &&
       !failure() && !cancelled() &&
       (github.event_name != 'schedule' || needs.check_changes.outputs.has_changes == 'true')
-      !failure() && !cancelled() &&
-      (github.event_name != 'schedule' || needs.check_changes.outputs.has_changes == 'true')
     runs-on: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 10
     outputs:
