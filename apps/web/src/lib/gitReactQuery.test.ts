@@ -17,9 +17,12 @@ import {
   gitBranchSearchInfiniteQueryOptions,
   gitMutationKeys,
   gitPreparePullRequestThreadMutationOptions,
+  gitQueryKeys,
+  gitDiffQueryOptions,
   gitPullMutationOptions,
   gitRunStackedActionMutationOptions,
   invalidateGitQueries,
+  invalidateGitDiffQueries,
 } from "./gitReactQuery";
 
 const BRANCH_QUERY_RESULT: VcsListRefsResult = {
@@ -36,6 +39,14 @@ const BRANCH_SEARCH_RESULT: InfiniteData<VcsListRefsResult, number> = {
 };
 const ENVIRONMENT_A = EnvironmentId.make("environment-a");
 const ENVIRONMENT_B = EnvironmentId.make("environment-b");
+
+describe("gitQueryKeys", () => {
+  it("scopes diff keys by cwd", () => {
+    expect(gitQueryKeys.diff(ENVIRONMENT_A, "/repo/a")).not.toEqual(
+      gitQueryKeys.diff(ENVIRONMENT_A, "/repo/b"),
+    );
+  });
+});
 
 describe("gitMutationKeys", () => {
   it("scopes stacked action keys by cwd", () => {
@@ -131,5 +142,14 @@ describe("invalidateGitQueries", () => {
         }).queryKey,
       )?.isInvalidated,
     ).toBe(false);
+  });
+});
+
+describe("git query options", () => {
+  it("attaches cwd-scoped query key for diff", async () => {
+    const queryClient = new QueryClient();
+    await invalidateGitDiffQueries(queryClient, ENVIRONMENT_A, "/repo/a");
+    const options = gitDiffQueryOptions({ environmentId: ENVIRONMENT_A, cwd: "/repo/a" });
+    expect(options.queryKey).toEqual(gitQueryKeys.diff(ENVIRONMENT_A, "/repo/a"));
   });
 });

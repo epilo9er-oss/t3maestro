@@ -426,4 +426,108 @@ it.layer(TestLayer)("GitVcsDriver core integration", (it) => {
       }),
     );
   });
+
+  describe("readWorkingTreeDiff", () => {
+    it.effect("returns an empty diff for a clean repo", () =>
+      Effect.gen(function* () {
+        const cwd = yield* makeTmpDir();
+        yield* initRepoWithCommit(cwd);
+        const driver = yield* GitVcsDriver.GitVcsDriver;
+
+        const diff = yield* driver.readWorkingTreeDiff(cwd);
+        assert.deepEqual(diff, { diff: "" });
+      }),
+    );
+
+    it.effect("returns a patch for tracked modifications", () =>
+      Effect.gen(function* () {
+        const cwd = yield* makeTmpDir();
+        yield* initRepoWithCommit(cwd);
+
+        const fileSystem = yield* FileSystem.FileSystem;
+        const pathService = yield* Path.Path;
+        const filePath = pathService.join(cwd, "README.md");
+        yield* fileSystem.writeFileString(filePath, "# test\ntracked change\n");
+
+        const driver = yield* GitVcsDriver.GitVcsDriver;
+        const diff = yield* driver.readWorkingTreeDiff(cwd);
+
+        assert.ok(diff.diff.includes("diff --git a/README.md b/README.md"));
+        assert.ok(diff.diff.includes("tracked change"));
+      }),
+    );
+
+    it.effect("returns a new-file patch for untracked files", () =>
+      Effect.gen(function* () {
+        const cwd = yield* makeTmpDir();
+        yield* initRepoWithCommit(cwd);
+
+        const fileSystem = yield* FileSystem.FileSystem;
+        const pathService = yield* Path.Path;
+        const filePath = pathService.join(cwd, "notes.txt");
+
+        yield* fileSystem.writeFileString(filePath, "hello\n");
+
+        const driver = yield* GitVcsDriver.GitVcsDriver;
+        const diff = yield* driver.readWorkingTreeDiff(cwd);
+
+        assert.ok(diff.diff.includes("diff --git a/notes.txt b/notes.txt"));
+        assert.ok(diff.diff.includes("new file mode"));
+        assert.ok(diff.diff.includes("+++ b/notes.txt"));
+      }),
+    );
+
+    it.effect("includes combined staged and unstaged changes against HEAD", () =>
+      Effect.gen(function* () {
+        const cwd = yield* makeTmpDir();
+        yield* initRepoWithCommit(cwd);
+
+        const fileSystem = yield* FileSystem.FileSystem;
+        const pathService = yield* Path.Path;
+        const filePath = pathService.join(cwd, "README.md");
+
+        yield* fileSystem.writeFileString(filePath, "# test\nstaged change\n");
+        yield* git(cwd, ["add", "README.md"]);
+
+        yield* fileSystem.writeFileString(filePath, "# test\nstaged change\nunstaged change\n");
+
+        const driver = yield* GitVcsDriver.GitVcsDriver;
+        const diff = yield* driver.readWorkingTreeDiff(cwd);
+
+        assert.ok(diff.diff.includes("diff --git a/README.md b/README.md"));
+        assert.ok(diff.diff.includes("staged change"));
+        assert.ok(diff.diff.includes("unstaged change"));
+      }),
+    );
+
+    it.effect("includes staged and untracked changes before the first commit", () =>
+      Effect.gen(function* () {
+        const cwd = yield* makeTmpDir();
+
+        const driver = yield* GitVcsDriver.GitVcsDriver;
+        yield* driver.initRepo({ cwd });
+
+        yield* git(cwd, ["config", "user.email", "test@test.com"]);
+        yield* git(cwd, ["config", "user.name", "Test"]);
+
+        const fileSystem = yield* FileSystem.FileSystem;
+        const pathService = yield* Path.Path;
+
+        const stagedFilePath = pathService.join(cwd, "staged.txt");
+        const untrackedFilePath = pathService.join(cwd, "untracked.txt");
+
+        yield* fileSystem.writeFileString(stagedFilePath, "staged\n");
+        yield* fileSystem.writeFileString(untrackedFilePath, "untracked\n");
+
+        yield* git(cwd, ["add", "staged.txt"]);
+
+        const diff = yield* driver.readWorkingTreeDiff(cwd);
+
+        assert.ok(diff.diff.includes("diff --git a/staged.txt b/staged.txt"));
+        assert.ok(diff.diff.includes("diff --git a/untracked.txt b/untracked.txt"));
+        assert.ok(diff.diff.includes("+++ b/staged.txt"));
+        assert.ok(diff.diff.includes("+++ b/untracked.txt"));
+      }),
+    );
+  });
 });

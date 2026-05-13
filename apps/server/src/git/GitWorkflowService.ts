@@ -18,6 +18,7 @@ import {
   type GitPreparePullRequestThreadResult,
   type GitPullRequestRefInput,
   type VcsPullResult,
+  type VcsDiffResult,
   type VcsRemoveWorktreeInput,
   type VcsDeleteRefInput,
   type VcsDeleteRefResult,
@@ -48,6 +49,7 @@ export interface GitWorkflowServiceShape {
   readonly invalidateRemoteStatus: (cwd: string) => Effect.Effect<void, never>;
   readonly invalidateStatus: (cwd: string) => Effect.Effect<void, never>;
   readonly pullCurrentBranch: (cwd: string) => Effect.Effect<VcsPullResult, GitCommandError>;
+  readonly readWorkingTreeDiff: (cwd: string) => Effect.Effect<VcsDiffResult, GitCommandError>;
   readonly runStackedAction: (
     input: GitRunStackedActionInput,
     options?: GitRunStackedActionOptions,
@@ -276,6 +278,10 @@ export const make = Effect.fn("makeGitWorkflowService")(function* () {
     pullCurrentBranch: (cwd) =>
       ensureGitCommand("GitWorkflowService.pullCurrentBranch", cwd).pipe(
         Effect.andThen(git.pullCurrentBranch(cwd)),
+      ),
+    readWorkingTreeDiff: (cwd) =>
+      ensureGitCommand("GitWorkflowService.readWorkingTreeDiff", cwd).pipe(
+        Effect.andThen(git.readWorkingTreeDiff(cwd)),
       ),
     runStackedAction: (input, options) =>
       ensureGit("GitWorkflowService.runStackedAction", input.cwd).pipe(

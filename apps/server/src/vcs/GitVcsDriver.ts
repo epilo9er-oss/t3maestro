@@ -22,6 +22,7 @@ import {
   type VcsListRefsInput,
   type VcsListRefsResult,
   type VcsPullResult,
+  type VcsDiffResult,
   type VcsRemoveWorktreeInput,
   type VcsDeleteRefInput,
   type VcsDeleteRefResult,
@@ -187,6 +188,7 @@ export interface GitVcsDriverShape {
   ) => Effect.Effect<string | null, GitCommandError>;
   readonly listRefs: (input: VcsListRefsInput) => Effect.Effect<VcsListRefsResult, GitCommandError>;
   readonly pullCurrentBranch: (cwd: string) => Effect.Effect<VcsPullResult, GitCommandError>;
+  readonly readWorkingTreeDiff: (cwd: string) => Effect.Effect<VcsDiffResult, GitCommandError>;
   readonly createWorktree: (
     input: VcsCreateWorktreeInput,
   ) => Effect.Effect<VcsCreateWorktreeResult, GitCommandError>;

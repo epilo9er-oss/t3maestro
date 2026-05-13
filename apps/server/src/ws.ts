@@ -1019,6 +1019,10 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
             ),
             { "rpc.aggregate": "git" },
           ),
+        [WS_METHODS.vcsDiff]: (input) =>
+          observeRpcEffect(WS_METHODS.vcsDiff, gitWorkflow.readWorkingTreeDiff(input.cwd), {
+            "rpc.aggregate": "git",
+          }),
         [WS_METHODS.gitRunStackedAction]: (input) =>
           observeRpcStream(
             WS_METHODS.gitRunStackedAction,
