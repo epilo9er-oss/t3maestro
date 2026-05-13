@@ -153,11 +153,13 @@ function parseBranchLine(line: string): { name: string; current: boolean } | nul
 }
 
 function parseNullSeparatedLines(stdout: string): string[] {
-  return stdout
-    .split("\u0000")
-    // 공백도 파일명으로 들어갈 수 있기 떄문에 위험함
-    // .map((value) => value.trim())
-    .filter((value) => value.length > 0);
+  return (
+    stdout
+      .split("\u0000")
+      // 공백도 파일명으로 들어갈 수 있기 떄문에 위험함
+      // .map((value) => value.trim())
+      .filter((value) => value.length > 0)
+  );
 }
 
 function filterBranchesForListQuery(
