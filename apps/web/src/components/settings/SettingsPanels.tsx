@@ -12,7 +12,7 @@ import {
   type ScopedThreadRef,
 } from "@t3tools/contracts";
 import { scopeThreadRef } from "@t3tools/client-runtime";
-import { DEFAULT_UNIFIED_SETTINGS } from "@t3tools/contracts/settings";
+import { DEFAULT_UNIFIED_SETTINGS, type NotificationSound } from "@t3tools/contracts/settings";
 import { createModelSelection } from "@t3tools/shared/model";
 import * as Duration from "effect/Duration";
 import * as Equal from "effect/Equal";
@@ -48,10 +48,7 @@ import { useShallow } from "zustand/react/shallow";
 import { selectProjectsAcrossEnvironments, useStore } from "../../store";
 import { useArchivedThreadSnapshots } from "../../lib/archivedThreadsState";
 import { formatRelativeTime, formatRelativeTimeLabel } from "../../timestampFormat";
-import {
-  NOTIFICATION_SOUND_OPTIONS,
-  playNotificationSound,
-} from "../../lib/notificationSound";
+import { NOTIFICATION_SOUND_OPTIONS, playNotificationSound } from "../../lib/notificationSound";
 import { Button } from "../ui/button";
 import { DraftInput } from "../ui/draft-input";
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select";
@@ -106,6 +103,16 @@ const TIMESTAMP_FORMAT_LABELS = {
 } as const;
 
 const DEFAULT_DRIVER_KIND = ProviderDriverKind.make("codex");
+
+function isNotificationSound(value: string): value is NotificationSound {
+  return (
+    value === "none" ||
+    value === "default" ||
+    value === "chime" ||
+    value === "pop" ||
+    value === "bell"
+  );
+}
 
 function withoutProviderInstanceKey<V>(
   record: Readonly<Record<ProviderInstanceId, V>> | undefined,
@@ -660,13 +667,7 @@ export function GeneralSettingsPanel() {
             <Select
               value={settings.notificationSound}
               onValueChange={(value) => {
-                if (
-                  value === "none" ||
-                  value === "default" ||
-                  value === "chime" ||
-                  value === "pop" ||
-                  value === "bell"
-                ) {
+                if (value && isNotificationSound(value)) {
                   updateSettings({ notificationSound: value });
                   playNotificationSound(value);
                 }
@@ -674,8 +675,9 @@ export function GeneralSettingsPanel() {
             >
               <SelectTrigger className="w-full sm:w-40" aria-label="Notification sound">
                 <SelectValue>
-                  {NOTIFICATION_SOUND_OPTIONS.find((opt) => opt.value === settings.notificationSound)
-                    ?.label ?? "Default"}
+                  {NOTIFICATION_SOUND_OPTIONS.find(
+                    (opt) => opt.value === settings.notificationSound,
+                  )?.label ?? "Default"}
                 </SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>

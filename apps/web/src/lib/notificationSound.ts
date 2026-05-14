@@ -9,8 +9,17 @@ function getAudioContext(): AudioContext {
   return audioContextRef.current;
 }
 
+// Exhaustiveness check helper
+const assertNever = (_value: never): never => {
+  throw new Error(`Unexpected value: ${_value}`);
+};
+
 export function playNotificationSound(sound: NotificationSound): void {
   if (sound === "none") return;
+
+  // Type narrowing: sound is now Exclude<NotificationSound, "none">
+  type NonNoneSound = Exclude<NotificationSound, "none">;
+  const soundToPlay = sound as NonNoneSound;
 
   try {
     const ctx = getAudioContext();
@@ -24,7 +33,7 @@ export function playNotificationSound(sound: NotificationSound): void {
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
 
-    switch (sound) {
+    switch (soundToPlay) {
       case "default":
         oscillator.frequency.setValueAtTime(800, ctx.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
@@ -56,6 +65,8 @@ export function playNotificationSound(sound: NotificationSound): void {
         oscillator.start(ctx.currentTime);
         oscillator.stop(ctx.currentTime + 1);
         break;
+      default:
+        return assertNever(soundToPlay);
     }
   } catch (e) {
     console.error("Failed to play notification sound:", e);

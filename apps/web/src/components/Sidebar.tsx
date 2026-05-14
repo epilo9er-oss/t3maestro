@@ -159,7 +159,6 @@ import { useThreadSelectionStore } from "../threadSelectionStore";
 import { useCommandPaletteStore } from "../commandPaletteStore";
 import {
   getSidebarThreadIdsToPrewarm,
-  hasUnseenCompletion,
   resolveAdjacentThreadId,
   isContextMenuPointerDown,
   resolveProjectStatusIndicator,
@@ -173,7 +172,6 @@ import {
   useThreadJumpHintVisibility,
   ThreadStatusPill,
 } from "./Sidebar.logic";
-import { isLatestTurnSettled } from "../session-logic";
 import { sortThreads } from "../lib/threadSort";
 import { SidebarUpdatePill } from "./sidebar/SidebarUpdatePill";
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
@@ -3435,25 +3433,9 @@ export default function Sidebar() {
         lastVisitedAt: threadLastVisitedAtById[threadKey],
       };
 
-      // Match resolveThreadStatusPill logic: check these conditions first
-      const isPendingApproval = threadStatusInput.hasPendingApprovals;
-      const isAwaitingInput = threadStatusInput.hasPendingUserInput;
-      const isRunning = threadStatusInput.session?.status === "running";
-      const isConnecting = threadStatusInput.session?.status === "connecting";
-      const hasPlanReadyPrompt =
-        !threadStatusInput.hasPendingUserInput &&
-        threadStatusInput.interactionMode === "plan" &&
-        isLatestTurnSettled(threadStatusInput.latestTurn, threadStatusInput.session) &&
-        threadStatusInput.hasActionableProposedPlan;
-
-      // Only show notification if truly completed (not pending/approval/running/connecting)
-      const isNowCompleted =
-        !isPendingApproval &&
-        !isAwaitingInput &&
-        !isRunning &&
-        !isConnecting &&
-        !hasPlanReadyPrompt &&
-        hasUnseenCompletion(threadStatusInput);
+      // Reuse resolveThreadStatusPill to check completion status
+      const statusPill = resolveThreadStatusPill({ thread: threadStatusInput });
+      const isNowCompleted = statusPill?.label === "Completed";
 
       const wasPreviouslyCompleted = completedThreadKeysRef.current.has(threadKey);
 
@@ -3464,14 +3446,12 @@ export default function Sidebar() {
           type: "success",
           title: "Thread completed",
           description: threadTitle,
-          threadRef: scopeThreadRef(thread.environmentId, thread.id),
-          dismissAfterVisibleMs: 5000,
-        });
+        } as Parameters<typeof toastManager.add>[0]);
 
         playNotificationSound(notificationSound);
 
         if (Notification.permission === "granted") {
-          new Notification("Thread completed", {
+          void new Notification("Thread completed", {
             body: threadTitle,
             icon: "/icon.png",
             silent: true,

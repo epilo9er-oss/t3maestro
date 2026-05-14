@@ -30,6 +30,7 @@ const clientSettings: ClientSettings = {
   sidebarThreadPreviewCount: 6,
   terminalFontFamily: "",
   timestampFormat: "24-hour",
+  notificationSound: "default",
 };
 
 const decodeClientSettingsJson = Schema.decodeEffect(Schema.fromJsonString(ClientSettingsSchema));

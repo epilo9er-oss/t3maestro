@@ -617,6 +617,7 @@ describe("wsApi", () => {
       sidebarThreadPreviewCount: 6,
       terminalFontFamily: "",
       timestampFormat: "24-hour" as const,
+      notificationSound: "default" as const,
     };
     const getClientSettings = vi.fn().mockResolvedValue({
       ...clientSettings,
@@ -682,6 +683,7 @@ describe("wsApi", () => {
       sidebarThreadPreviewCount: 6,
       terminalFontFamily: "",
       timestampFormat: "24-hour" as const,
+      notificationSound: "default" as const,
     };
 
     await api.persistence.setClientSettings(clientSettings);
