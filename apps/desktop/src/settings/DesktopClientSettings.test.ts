@@ -18,6 +18,7 @@ const clientSettings: ClientSettings = {
   dismissedProviderUpdateNotificationKeys: [],
   diffIgnoreWhitespace: true,
   diffWordWrap: true,
+  defaultDiffScope: "session",
   favorites: [],
   providerModelPreferences: {},
   sidebarProjectGroupingMode: "repository_path",
