@@ -145,10 +145,14 @@ function buildPromptFromMessage(input: PromptFromMessageInput): string {
   );
 
   const promptSections = [
+    "CRITICAL: Respond ONLY with a raw JSON object. No XML tags, no markdown code blocks, no tool calls, no explanations.",
+    "",
     input.instruction,
     input.responseShape,
     "Rules:",
     ...input.rules.map((rule) => `- ${rule}`),
+    "- Output must be valid JSON only - no XML tags like <bash> or <output>",
+    "- Do not wrap JSON in markdown code blocks",
     "",
     "User message:",
     limitSection(input.message, 8_000),
