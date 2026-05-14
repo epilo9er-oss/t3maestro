@@ -401,6 +401,9 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.diffWordWrap !== DEFAULT_UNIFIED_SETTINGS.diffWordWrap
         ? ["Diff line wrapping"]
         : []),
+      ...(settings.defaultDiffScope !== DEFAULT_UNIFIED_SETTINGS.defaultDiffScope
+        ? ["Default diff scope"]
+        : []),
       ...(settings.diffIgnoreWhitespace !== DEFAULT_UNIFIED_SETTINGS.diffIgnoreWhitespace
         ? ["Diff whitespace changes"]
         : []),
@@ -445,6 +448,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       settings.defaultThreadEnvMode,
       settings.diffIgnoreWhitespace,
       settings.diffWordWrap,
+      settings.defaultDiffScope,
       settings.automaticGitFetchInterval,
       settings.enableAssistantStreaming,
       settings.sidebarThreadPreviewCount,
@@ -467,6 +471,7 @@ export function useSettingsRestore(onRestored?: () => void) {
     updateSettings({
       timestampFormat: DEFAULT_UNIFIED_SETTINGS.timestampFormat,
       diffWordWrap: DEFAULT_UNIFIED_SETTINGS.diffWordWrap,
+      defaultDiffScope: DEFAULT_UNIFIED_SETTINGS.defaultDiffScope,
       diffIgnoreWhitespace: DEFAULT_UNIFIED_SETTINGS.diffIgnoreWhitespace,
       sidebarThreadPreviewCount: DEFAULT_UNIFIED_SETTINGS.sidebarThreadPreviewCount,
       autoOpenPlanSidebar: DEFAULT_UNIFIED_SETTINGS.autoOpenPlanSidebar,
@@ -653,6 +658,47 @@ export function GeneralSettingsPanel() {
               onCheckedChange={(checked) => updateSettings({ diffWordWrap: Boolean(checked) })}
               aria-label="Wrap diff lines by default"
             />
+          }
+        />
+
+        <SettingsRow
+          title="Default diff scope"
+          description="Choose which diff view to show by default."
+          resetAction={
+            settings.defaultDiffScope !== DEFAULT_UNIFIED_SETTINGS.defaultDiffScope ? (
+              <SettingResetButton
+                label="default diff scope"
+                onClick={() =>
+                  updateSettings({
+                    defaultDiffScope: DEFAULT_UNIFIED_SETTINGS.defaultDiffScope,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Select
+              value={settings.defaultDiffScope}
+              onValueChange={(value) => {
+                if (value === "session" || value === "git") {
+                  updateSettings({ defaultDiffScope: value });
+                }
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-40" aria-label="Default diff scope">
+                <SelectValue>
+                  {settings.defaultDiffScope === "session" ? "Session history" : "Full git diff"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectPopup align="end" alignItemWithTrigger={false}>
+                <SelectItem hideIndicator value="git">
+                  Full git diff
+                </SelectItem>
+                <SelectItem hideIndicator value="session">
+                  Session history
+                </SelectItem>
+              </SelectPopup>
+            </Select>
           }
         />
 

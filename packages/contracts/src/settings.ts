@@ -9,6 +9,8 @@ import { ProviderInstanceConfig, ProviderInstanceId } from "./providerInstance.t
 
 // ── Client Settings (local-only) ───────────────────────────────
 
+const DiffScopeSchema = Schema.Literals(["session", "git"]);
+
 export const TimestampFormat = Schema.Literals(["locale", "12-hour", "24-hour"]);
 export type TimestampFormat = typeof TimestampFormat.Type;
 export const DEFAULT_TIMESTAMP_FORMAT: TimestampFormat = "locale";
@@ -48,6 +50,9 @@ export const ClientSettingsSchema = Schema.Struct({
   ),
   diffIgnoreWhitespace: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(true))),
   diffWordWrap: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(false))),
+  defaultDiffScope: DiffScopeSchema.pipe(
+    Schema.withDecodingDefault(Effect.succeed("git" as const)),
+  ),
   terminalFontFamily: TrimmedString.pipe(Schema.withDecodingDefault(Effect.succeed(""))),
   // Model favorites. Historically keyed by provider kind, now
   // widened to `ProviderInstanceId` so users can favorite a specific model
@@ -483,6 +488,7 @@ export const ClientSettingsPatch = Schema.Struct({
   confirmThreadDelete: Schema.optionalKey(Schema.Boolean),
   diffIgnoreWhitespace: Schema.optionalKey(Schema.Boolean),
   diffWordWrap: Schema.optionalKey(Schema.Boolean),
+  defaultDiffScope: Schema.optionalKey(DiffScopeSchema),
   terminalFontFamily: Schema.optionalKey(TrimmedString),
   favorites: Schema.optionalKey(
     Schema.Array(
