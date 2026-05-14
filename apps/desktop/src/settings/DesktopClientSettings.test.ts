@@ -30,6 +30,7 @@ const clientSettings: ClientSettings = {
   sidebarThreadPreviewCount: 6,
   terminalFontFamily: "",
   timestampFormat: "24-hour",
+  notificationsEnabled: false,
   notificationSound: "default",
 };
 

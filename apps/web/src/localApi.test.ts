@@ -617,6 +617,7 @@ describe("wsApi", () => {
       sidebarThreadPreviewCount: 6,
       terminalFontFamily: "",
       timestampFormat: "24-hour" as const,
+      notificationsEnabled: false,
       notificationSound: "default" as const,
     };
     const getClientSettings = vi.fn().mockResolvedValue({
@@ -683,6 +684,7 @@ describe("wsApi", () => {
       sidebarThreadPreviewCount: 6,
       terminalFontFamily: "",
       timestampFormat: "24-hour" as const,
+      notificationsEnabled: false,
       notificationSound: "default" as const,
     };
 

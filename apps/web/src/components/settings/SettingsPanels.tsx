@@ -30,6 +30,7 @@ import { isElectron } from "../../env";
 import { buildHostedChannelSelectionUrl, type HostedAppChannel } from "../../hostedPairing";
 import { useTheme } from "../../hooks/useTheme";
 import { useSettings, useUpdateSettings } from "../../hooks/useSettings";
+import { useLocalNotification } from "../../hooks/useLocalNotification";
 import { useThreadActions } from "../../hooks/useThreadActions";
 import {
   setDesktopUpdateStateQueryData,
@@ -440,6 +441,9 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.terminalFontFamily !== DEFAULT_UNIFIED_SETTINGS.terminalFontFamily
         ? ["Terminal font"]
         : []),
+      ...(settings.notificationsEnabled !== DEFAULT_UNIFIED_SETTINGS.notificationsEnabled
+        ? ["Notifications"]
+        : []),
       ...(settings.notificationSound !== DEFAULT_UNIFIED_SETTINGS.notificationSound
         ? ["Notification sound"]
         : []),
@@ -492,6 +496,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       confirmThreadArchive: DEFAULT_UNIFIED_SETTINGS.confirmThreadArchive,
       confirmThreadDelete: DEFAULT_UNIFIED_SETTINGS.confirmThreadDelete,
       terminalFontFamily: DEFAULT_UNIFIED_SETTINGS.terminalFontFamily,
+      notificationsEnabled: DEFAULT_UNIFIED_SETTINGS.notificationsEnabled,
       notificationSound: DEFAULT_UNIFIED_SETTINGS.notificationSound,
       textGenerationModelSelection: DEFAULT_UNIFIED_SETTINGS.textGenerationModelSelection,
     });
@@ -508,6 +513,7 @@ export function GeneralSettingsPanel() {
   const { theme, setTheme } = useTheme();
   const settings = useSettings();
   const { updateSettings } = useUpdateSettings();
+  const { requestPermission } = useLocalNotification();
   const observability = useServerObservability();
   const serverProviders = useServerProviders();
   const sourceControlDiscovery = useSourceControlDiscovery();
@@ -648,47 +654,66 @@ export function GeneralSettingsPanel() {
         />
 
         <SettingsRow
-          title="Notification sound"
-          description="Sound played when a thread completes."
-          resetAction={
-            settings.notificationSound !== DEFAULT_UNIFIED_SETTINGS.notificationSound ? (
-              <SettingResetButton
-                label="notification sound"
-                onClick={() =>
-                  updateSettings({
-                    notificationSound: DEFAULT_UNIFIED_SETTINGS.notificationSound,
-                  })
-                }
-              />
-            ) : null
-          }
+          title="Notifications"
+          description="Show desktop notifications when threads complete."
           control={
-            <Select
-              value={settings.notificationSound}
-              onValueChange={(value) => {
-                if (value && isNotificationSound(value)) {
-                  updateSettings({ notificationSound: value });
-                  playNotificationSound(value);
+            <Switch
+              checked={settings.notificationsEnabled}
+              onCheckedChange={async (checked) => {
+                if (checked) {
+                  await requestPermission();
                 }
+                updateSettings({ notificationsEnabled: Boolean(checked) });
               }}
-            >
-              <SelectTrigger className="w-full sm:w-40" aria-label="Notification sound">
-                <SelectValue>
-                  {NOTIFICATION_SOUND_OPTIONS.find(
-                    (opt) => opt.value === settings.notificationSound,
-                  )?.label ?? "Default"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectPopup align="end" alignItemWithTrigger={false}>
-                {NOTIFICATION_SOUND_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} hideIndicator value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectPopup>
-            </Select>
+              aria-label="Enable desktop notifications"
+            />
           }
         />
+
+        {settings.notificationsEnabled && (
+          <SettingsRow
+            title="Notification sound"
+            description="Sound played when a thread completes."
+            resetAction={
+              settings.notificationSound !== DEFAULT_UNIFIED_SETTINGS.notificationSound ? (
+                <SettingResetButton
+                  label="notification sound"
+                  onClick={() =>
+                    updateSettings({
+                      notificationSound: DEFAULT_UNIFIED_SETTINGS.notificationSound,
+                    })
+                  }
+                />
+              ) : null
+            }
+            control={
+              <Select
+                value={settings.notificationSound}
+                onValueChange={(value) => {
+                  if (value && isNotificationSound(value)) {
+                    updateSettings({ notificationSound: value });
+                    playNotificationSound(value);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-40" aria-label="Notification sound">
+                  <SelectValue>
+                    {NOTIFICATION_SOUND_OPTIONS.find(
+                      (opt) => opt.value === settings.notificationSound,
+                    )?.label ?? "Default"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectPopup align="end" alignItemWithTrigger={false}>
+                  {NOTIFICATION_SOUND_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} hideIndicator value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectPopup>
+              </Select>
+            }
+          />
+        )}
 
         <SettingsRow
           title="Diff line wrapping"

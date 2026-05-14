@@ -9,17 +9,36 @@ function getAudioContext(): AudioContext {
   return audioContextRef.current;
 }
 
-// Exhaustiveness check helper
-const assertNever = (_value: never): never => {
-  throw new Error(`Unexpected value: ${_value}`);
-};
+interface ToneOptions {
+  freq: number;
+  startTime: number;
+  duration: number;
+  gainPeak: number;
+  type?: OscillatorType;
+}
+
+function playTone(ctx: AudioContext, options: ToneOptions): void {
+  const { freq, startTime, duration, gainPeak, type = "sine" } = options;
+
+  const oscillator = ctx.createOscillator();
+  const gainNode = ctx.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(ctx.destination);
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(freq, startTime);
+
+  gainNode.gain.setValueAtTime(0, startTime);
+  gainNode.gain.linearRampToValueAtTime(gainPeak, startTime + 0.01);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration);
+}
 
 export function playNotificationSound(sound: NotificationSound): void {
   if (sound === "none") return;
-
-  // Type narrowing: sound is now Exclude<NotificationSound, "none">
-  type NonNoneSound = Exclude<NotificationSound, "none">;
-  const soundToPlay = sound as NonNoneSound;
 
   try {
     const ctx = getAudioContext();
@@ -27,46 +46,29 @@ export function playNotificationSound(sound: NotificationSound): void {
       ctx.resume();
     }
 
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+    const now = ctx.currentTime;
 
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    switch (soundToPlay) {
-      case "default":
-        oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
-        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-        oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.2);
+    switch (sound) {
+      case "default": // Cabin Call chime
+        playTone(ctx, { freq: 587.33, startTime: now, duration: 0.88, gainPeak: 0.28 });
+        playTone(ctx, { freq: 493.88, startTime: now + 1.03, duration: 0.88, gainPeak: 0.28 });
         break;
-      case "chime":
-        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
-        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.5);
-        break;
-      case "pop":
-        oscillator.frequency.setValueAtTime(600, ctx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.05);
-        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-        oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.1);
+      case "beep":
+        playTone(ctx, { freq: 800, startTime: now, duration: 0.1, gainPeak: 0.3 });
         break;
       case "bell":
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
-        oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 1);
+        playTone(ctx, { freq: 880, startTime: now, duration: 1, gainPeak: 0.3 });
         break;
-      default:
-        return assertNever(soundToPlay);
+      case "chime": // Seatbelt chime
+        playTone(ctx, { freq: 523.25, startTime: now, duration: 1.2, gainPeak: 0.28 });
+        break;
+      case "pop":
+        playTone(ctx, { freq: 600, startTime: now, duration: 0.05, gainPeak: 0.2 });
+        break;
+      case "turbulence-chime":
+        playTone(ctx, { freq: 493.25, startTime: now, duration: 1.2, gainPeak: 0.28 });
+        playTone(ctx, { freq: 493.25, startTime: now + 1.2, duration: 1.2, gainPeak: 0.26 });
+        break;
     }
   } catch (e) {
     console.error("Failed to play notification sound:", e);
@@ -76,7 +78,9 @@ export function playNotificationSound(sound: NotificationSound): void {
 export const NOTIFICATION_SOUND_OPTIONS = [
   { value: "none" as const, label: "None" },
   { value: "default" as const, label: "Default" },
+  { value: "beep" as const, label: "Beep" },
+  { value: "bell" as const, label: "Bell" },
   { value: "chime" as const, label: "Chime" },
   { value: "pop" as const, label: "Pop" },
-  { value: "bell" as const, label: "Bell" },
+  { value: "turbulence-chime" as const, label: "Turbulence Chime" },
 ] as const;

@@ -177,8 +177,8 @@ import { SidebarUpdatePill } from "./sidebar/SidebarUpdatePill";
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
 import { CommandDialogTrigger } from "./ui/command";
 import { readEnvironmentApi } from "../environmentApi";
-import { playNotificationSound } from "~/lib/notificationSound";
 import { useSettings, useUpdateSettings } from "~/hooks/useSettings";
+import { useLocalNotification } from "~/hooks/useLocalNotification";
 import { useServerKeybindings } from "../rpc/serverState";
 import {
   derivePhysicalProjectKey,
@@ -3416,6 +3416,8 @@ export default function Sidebar() {
 
   const threadLastVisitedAtById = useUiStateStore((store) => store.threadLastVisitedAtById);
   const notificationSound = useSettings((s) => s.notificationSound);
+  const notificationsEnabled = useSettings((s) => s.notificationsEnabled);
+  const { showThreadCompletion } = useLocalNotification();
   const completedThreadKeysRef = useRef<ReadonlySet<string>>(new Set());
   const isInitializedRef = useRef(false);
 
@@ -3457,14 +3459,8 @@ export default function Sidebar() {
             },
           } as Parameters<typeof toastManager.add>[0]);
 
-          playNotificationSound(notificationSound);
-
-          if (Notification.permission === "granted") {
-            void new Notification("Thread completed", {
-              body: threadTitle,
-              icon: "/icon.png",
-              silent: true,
-            });
+          if (notificationsEnabled) {
+            showThreadCompletion(threadTitle, notificationSound);
           }
         }
       }
@@ -3476,7 +3472,13 @@ export default function Sidebar() {
 
     completedThreadKeysRef.current = currentCompletedKeys;
     isInitializedRef.current = true;
-  }, [sidebarThreads, threadLastVisitedAtById, notificationSound]);
+  }, [
+    sidebarThreads,
+    threadLastVisitedAtById,
+    notificationSound,
+    notificationsEnabled,
+    showThreadCompletion,
+  ]);
 
   return (
     <>
