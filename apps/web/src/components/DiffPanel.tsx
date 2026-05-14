@@ -779,7 +779,7 @@ export default function DiffPanel({ mode = "inline" }: DiffPanelProps) {
           className="shrink-0"
           variant="outline"
           size="xs"
-          value={[diffScope ?? "git"]}
+          value={[diffScope]}
           onValueChange={(value) => {
             const next = value[0];
             if (next === "session" || next === "git") {
