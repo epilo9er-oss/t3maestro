@@ -97,39 +97,13 @@ export const prettyJsonString = SchemaGetter.parseJson<string>().compose(
 export const fromLenientJson = <S extends Schema.Top>(schema: S) =>
   Schema.String.pipe(Schema.decodeTo(schema, fromLenientJsonString));
 
-/**
- * Strip common XML tags and markdown code blocks that might wrap JSON.
- * Handles cases like <bash>{...}</bash>, ```json {...} ```, etc.
- */
-function stripXmlAndMarkdownTags(input: string): string {
-  let result = input;
-  // Strip markdown code blocks first (in case XML tags are inside them)
-  result = result.replace(/```(?:json)?\s*/gi, "");
-  result = result.replace(/```\s*$/gi, "");
-  // Strip XML tags that commonly wrap tool call responses
-  result = result.replace(/<\/?(bash|output|result|response|tool)\s*>/gi, "");
-  return result;
-}
-
 export function extractJsonObject(raw: string): string {
   const trimmed = raw.trim();
   if (trimmed.length === 0) {
     return trimmed;
   }
 
-  // First, try to find JSON in the original input
-  let start = trimmed.indexOf("{");
-  let workingCopy = trimmed;
-
-  // If no { found, try stripping XML/markdown tags and search again
-  if (start < 0) {
-    const stripped = stripXmlAndMarkdownTags(trimmed);
-    start = stripped.indexOf("{");
-    if (start >= 0) {
-      workingCopy = stripped;
-    }
-  }
-
+  const start = trimmed.indexOf("{");
   if (start < 0) {
     return trimmed;
   }
@@ -137,8 +111,8 @@ export function extractJsonObject(raw: string): string {
   let depth = 0;
   let inString = false;
   let escaping = false;
-  for (let index = start; index < workingCopy.length; index += 1) {
-    const char = workingCopy[index];
+  for (let index = start; index < trimmed.length; index += 1) {
+    const char = trimmed[index];
     if (inString) {
       if (escaping) {
         escaping = false;
@@ -163,12 +137,12 @@ export function extractJsonObject(raw: string): string {
     if (char === "}") {
       depth -= 1;
       if (depth === 0) {
-        return workingCopy.slice(start, index + 1);
+        return trimmed.slice(start, index + 1);
       }
     }
   }
 
-  return workingCopy.slice(start);
+  return trimmed.slice(start);
 }
 
 /**
