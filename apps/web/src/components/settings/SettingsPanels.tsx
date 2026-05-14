@@ -48,6 +48,10 @@ import { useShallow } from "zustand/react/shallow";
 import { selectProjectsAcrossEnvironments, useStore } from "../../store";
 import { useArchivedThreadSnapshots } from "../../lib/archivedThreadsState";
 import { formatRelativeTime, formatRelativeTimeLabel } from "../../timestampFormat";
+import {
+  NOTIFICATION_SOUND_OPTIONS,
+  playNotificationSound,
+} from "../../lib/notificationSound";
 import { Button } from "../ui/button";
 import { DraftInput } from "../ui/draft-input";
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "../ui/select";
@@ -627,6 +631,54 @@ export function GeneralSettingsPanel() {
                 <SelectItem hideIndicator value="24-hour">
                   {TIMESTAMP_FORMAT_LABELS["24-hour"]}
                 </SelectItem>
+              </SelectPopup>
+            </Select>
+          }
+        />
+
+        <SettingsRow
+          title="Notification sound"
+          description="Sound played when a thread completes."
+          resetAction={
+            settings.notificationSound !== DEFAULT_UNIFIED_SETTINGS.notificationSound ? (
+              <SettingResetButton
+                label="notification sound"
+                onClick={() =>
+                  updateSettings({
+                    notificationSound: DEFAULT_UNIFIED_SETTINGS.notificationSound,
+                  })
+                }
+              />
+            ) : null
+          }
+          control={
+            <Select
+              value={settings.notificationSound}
+              onValueChange={(value) => {
+                if (
+                  value === "none" ||
+                  value === "default" ||
+                  value === "chime" ||
+                  value === "pop" ||
+                  value === "bell"
+                ) {
+                  updateSettings({ notificationSound: value });
+                  playNotificationSound(value);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-40" aria-label="Notification sound">
+                <SelectValue>
+                  {NOTIFICATION_SOUND_OPTIONS.find((opt) => opt.value === settings.notificationSound)
+                    ?.label ?? "Default"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectPopup align="end" alignItemWithTrigger={false}>
+                {NOTIFICATION_SOUND_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} hideIndicator value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectPopup>
             </Select>
           }

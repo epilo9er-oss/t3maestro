@@ -159,6 +159,7 @@ import { useThreadSelectionStore } from "../threadSelectionStore";
 import { useCommandPaletteStore } from "../commandPaletteStore";
 import {
   getSidebarThreadIdsToPrewarm,
+  hasUnseenCompletion,
   resolveAdjacentThreadId,
   isContextMenuPointerDown,
   resolveProjectStatusIndicator,
@@ -172,11 +173,13 @@ import {
   useThreadJumpHintVisibility,
   ThreadStatusPill,
 } from "./Sidebar.logic";
+import { isLatestTurnSettled } from "../session-logic";
 import { sortThreads } from "../lib/threadSort";
 import { SidebarUpdatePill } from "./sidebar/SidebarUpdatePill";
 import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
 import { CommandDialogTrigger } from "./ui/command";
 import { readEnvironmentApi } from "../environmentApi";
+import { playNotificationSound } from "~/lib/notificationSound";
 import { useSettings, useUpdateSettings } from "~/hooks/useSettings";
 import { useServerKeybindings } from "../rpc/serverState";
 import {
@@ -3412,6 +3415,77 @@ export default function Sidebar() {
       return next;
     });
   }, []);
+
+  const threadLastVisitedAtById = useUiStateStore((store) => store.threadLastVisitedAtById);
+  const notificationSound = useSettings((s) => s.notificationSound);
+  const completedThreadKeysRef = useRef<ReadonlySet<string>>(new Set());
+
+  useEffect(() => {
+    const currentCompletedKeys = new Set<string>();
+
+    for (const thread of sidebarThreads) {
+      const threadKey = scopedThreadKey(scopeThreadRef(thread.environmentId, thread.id));
+      const threadStatusInput = {
+        hasActionableProposedPlan: thread.hasActionableProposedPlan ?? false,
+        hasPendingApprovals: thread.hasPendingApprovals ?? false,
+        hasPendingUserInput: thread.hasPendingUserInput ?? false,
+        interactionMode: thread.interactionMode,
+        latestTurn: thread.latestTurn,
+        session: thread.session,
+        lastVisitedAt: threadLastVisitedAtById[threadKey],
+      };
+
+      // Match resolveThreadStatusPill logic: check these conditions first
+      const isPendingApproval = threadStatusInput.hasPendingApprovals;
+      const isAwaitingInput = threadStatusInput.hasPendingUserInput;
+      const isRunning = threadStatusInput.session?.status === "running";
+      const isConnecting = threadStatusInput.session?.status === "connecting";
+      const hasPlanReadyPrompt =
+        !threadStatusInput.hasPendingUserInput &&
+        threadStatusInput.interactionMode === "plan" &&
+        isLatestTurnSettled(threadStatusInput.latestTurn, threadStatusInput.session) &&
+        threadStatusInput.hasActionableProposedPlan;
+
+      // Only show notification if truly completed (not pending/approval/running/connecting)
+      const isNowCompleted =
+        !isPendingApproval &&
+        !isAwaitingInput &&
+        !isRunning &&
+        !isConnecting &&
+        !hasPlanReadyPrompt &&
+        hasUnseenCompletion(threadStatusInput);
+
+      const wasPreviouslyCompleted = completedThreadKeysRef.current.has(threadKey);
+
+      if (isNowCompleted && !wasPreviouslyCompleted) {
+        const threadTitle = thread.title ?? "Your task is complete";
+
+        toastManager.add({
+          type: "success",
+          title: "Thread completed",
+          description: threadTitle,
+          threadRef: scopeThreadRef(thread.environmentId, thread.id),
+          dismissAfterVisibleMs: 5000,
+        });
+
+        playNotificationSound(notificationSound);
+
+        if (Notification.permission === "granted") {
+          new Notification("Thread completed", {
+            body: threadTitle,
+            icon: "/icon.png",
+            silent: true,
+          });
+        }
+      }
+
+      if (isNowCompleted) {
+        currentCompletedKeys.add(threadKey);
+      }
+    }
+
+    completedThreadKeysRef.current = currentCompletedKeys;
+  }, [sidebarThreads, threadLastVisitedAtById, notificationSound]);
 
   return (
     <>

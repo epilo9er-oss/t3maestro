@@ -1139,6 +1139,8 @@ export default function ChatView(props: ChatViewProps) {
     if (!serverThread?.id) return;
     if (!latestTurnSettled) return;
     if (!activeLatestTurn?.completedAt) return;
+    // Only mark as visited if the user is actually viewing the app (has focus)
+    if (typeof document !== "undefined" && !document.hasFocus()) return;
     const turnCompletedAt = Date.parse(activeLatestTurn.completedAt);
     if (Number.isNaN(turnCompletedAt)) return;
     const lastVisitedAt = activeThreadLastVisitedAt ? Date.parse(activeThreadLastVisitedAt) : NaN;
@@ -1152,6 +1154,36 @@ export default function ChatView(props: ChatViewProps) {
     activeLatestTurn?.completedAt,
     activeThreadLastVisitedAt,
     latestTurnSettled,
+    markThreadVisited,
+    serverThread?.environmentId,
+    serverThread?.id,
+  ]);
+
+  // When user returns to the app (gains focus), mark completed thread as visited
+  useEffect(() => {
+    if (!serverThread?.id) return;
+    if (!activeLatestTurn?.completedAt) return;
+
+    const handleFocus = () => {
+      const turnCompletedAt = Date.parse(activeLatestTurn.completedAt);
+      if (Number.isNaN(turnCompletedAt)) return;
+      const lastVisitedAt = activeThreadLastVisitedAt
+        ? Date.parse(activeThreadLastVisitedAt)
+        : NaN;
+      // Only mark as visited if not already visited after completion
+      if (!Number.isNaN(lastVisitedAt) && lastVisitedAt >= turnCompletedAt) return;
+
+      markThreadVisited(
+        scopedThreadKey(scopeThreadRef(serverThread.environmentId, serverThread.id)),
+        activeLatestTurn.completedAt,
+      );
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [
+    activeLatestTurn?.completedAt,
+    activeThreadLastVisitedAt,
     markThreadVisited,
     serverThread?.environmentId,
     serverThread?.id,
