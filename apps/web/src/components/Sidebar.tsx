@@ -3417,6 +3417,7 @@ export default function Sidebar() {
   const threadLastVisitedAtById = useUiStateStore((store) => store.threadLastVisitedAtById);
   const notificationSound = useSettings((s) => s.notificationSound);
   const completedThreadKeysRef = useRef<ReadonlySet<string>>(new Set());
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
     const currentCompletedKeys = new Set<string>();
@@ -3440,22 +3441,31 @@ export default function Sidebar() {
       const wasPreviouslyCompleted = completedThreadKeysRef.current.has(threadKey);
 
       if (isNowCompleted && !wasPreviouslyCompleted) {
-        const threadTitle = thread.title ?? "Your task is complete";
+        // Only notify after initialization (skip first load to prevent barrage)
+        if (!isInitializedRef.current) {
+          // First load: just track completed threads, don't notify
+        } else {
+          const threadTitle = thread.title ?? "Your task is complete";
 
-        toastManager.add({
-          type: "success",
-          title: "Thread completed",
-          description: threadTitle,
-        } as Parameters<typeof toastManager.add>[0]);
+          toastManager.add({
+            type: "success",
+            title: "Thread completed",
+            description: threadTitle,
+            data: {
+              threadRef: scopeThreadRef(thread.environmentId, thread.id),
+              dismissAfterVisibleMs: 5000,
+            },
+          } as Parameters<typeof toastManager.add>[0]);
 
-        playNotificationSound(notificationSound);
+          playNotificationSound(notificationSound);
 
-        if (Notification.permission === "granted") {
-          void new Notification("Thread completed", {
-            body: threadTitle,
-            icon: "/icon.png",
-            silent: true,
-          });
+          if (Notification.permission === "granted") {
+            void new Notification("Thread completed", {
+              body: threadTitle,
+              icon: "/icon.png",
+              silent: true,
+            });
+          }
         }
       }
 
@@ -3465,6 +3475,7 @@ export default function Sidebar() {
     }
 
     completedThreadKeysRef.current = currentCompletedKeys;
+    isInitializedRef.current = true;
   }, [sidebarThreads, threadLastVisitedAtById, notificationSound]);
 
   return (

@@ -105,13 +105,7 @@ const TIMESTAMP_FORMAT_LABELS = {
 const DEFAULT_DRIVER_KIND = ProviderDriverKind.make("codex");
 
 function isNotificationSound(value: string): value is NotificationSound {
-  return (
-    value === "none" ||
-    value === "default" ||
-    value === "chime" ||
-    value === "pop" ||
-    value === "bell"
-  );
+  return NOTIFICATION_SOUND_OPTIONS.some((option) => option.value === value);
 }
 
 function withoutProviderInstanceKey<V>(
@@ -446,6 +440,9 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.terminalFontFamily !== DEFAULT_UNIFIED_SETTINGS.terminalFontFamily
         ? ["Terminal font"]
         : []),
+      ...(settings.notificationSound !== DEFAULT_UNIFIED_SETTINGS.notificationSound
+        ? ["Notification sound"]
+        : []),
       ...(isGitWritingModelDirty ? ["Git writing model"] : []),
     ],
     [
@@ -454,6 +451,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       settings.confirmThreadArchive,
       settings.confirmThreadDelete,
       settings.terminalFontFamily,
+      settings.notificationSound,
       settings.addProjectBaseDirectory,
       settings.worktreeBranchPrefix,
       settings.defaultThreadEnvMode,
@@ -494,6 +492,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       confirmThreadArchive: DEFAULT_UNIFIED_SETTINGS.confirmThreadArchive,
       confirmThreadDelete: DEFAULT_UNIFIED_SETTINGS.confirmThreadDelete,
       terminalFontFamily: DEFAULT_UNIFIED_SETTINGS.terminalFontFamily,
+      notificationSound: DEFAULT_UNIFIED_SETTINGS.notificationSound,
       textGenerationModelSelection: DEFAULT_UNIFIED_SETTINGS.textGenerationModelSelection,
     });
     onRestored?.();
