@@ -254,7 +254,7 @@ export default function DiffPanel({ mode = "inline" }: DiffPanelProps) {
     const storedValue = window.localStorage.getItem(DIFF_SCOPE_STORAGE_KEY);
     return storedValue === "session" || storedValue === "git"
       ? storedValue
-      : settings.defaultDiffScope ?? DEFAULT_DIFF_SCOPE;
+      : (settings.defaultDiffScope ?? DEFAULT_DIFF_SCOPE);
   });
   const [diffRenderMode, setDiffRenderMode] = useState<DiffRenderMode>("stacked");
   const [diffWordWrap, setDiffWordWrap] = useState(settings.diffWordWrap);

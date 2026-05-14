@@ -50,7 +50,9 @@ export const ClientSettingsSchema = Schema.Struct({
   ),
   diffIgnoreWhitespace: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(true))),
   diffWordWrap: Schema.Boolean.pipe(Schema.withDecodingDefault(Effect.succeed(false))),
-  defaultDiffScope: DiffScopeSchema.pipe(Schema.withDecodingDefault(Effect.succeed("git" as const))),
+  defaultDiffScope: DiffScopeSchema.pipe(
+    Schema.withDecodingDefault(Effect.succeed("git" as const)),
+  ),
   terminalFontFamily: TrimmedString.pipe(Schema.withDecodingDefault(Effect.succeed(""))),
   // Model favorites. Historically keyed by provider kind, now
   // widened to `ProviderInstanceId` so users can favorite a specific model
