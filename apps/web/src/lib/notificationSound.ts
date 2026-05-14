@@ -9,6 +9,11 @@ function getAudioContext(): AudioContext {
   return audioContextRef.current;
 }
 
+// Exhaustiveness check helper
+const assertNever = (value: never): never => {
+  throw new Error(`Unexpected value: ${value}`);
+};
+
 interface ToneOptions {
   freq: number;
   startTime: number;
@@ -69,6 +74,8 @@ export function playNotificationSound(sound: NotificationSound): void {
         playTone(ctx, { freq: 493.25, startTime: now, duration: 1.2, gainPeak: 0.28 });
         playTone(ctx, { freq: 493.25, startTime: now + 1.2, duration: 1.2, gainPeak: 0.26 });
         break;
+      default:
+        return assertNever(sound);
     }
   } catch (e) {
     console.error("Failed to play notification sound:", e);

@@ -3449,6 +3449,7 @@ export default function Sidebar() {
         } else {
           const threadTitle = thread.title ?? "Your task is complete";
 
+          // TODO: Remove type cast once toast type definition is updated to include data.threadRef and data.dismissAfterVisibleMs
           toastManager.add({
             type: "success",
             title: "Thread completed",
