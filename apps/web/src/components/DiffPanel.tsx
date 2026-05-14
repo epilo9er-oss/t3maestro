@@ -249,10 +249,12 @@ export default function DiffPanel({ mode = "inline" }: DiffPanelProps) {
   const settings = useSettings();
   const [rememberedDiffScope, setRememberedDiffScope] = useState<DiffScope>(() => {
     if (typeof window === "undefined") {
-      return DEFAULT_DIFF_SCOPE;
+      return settings.defaultDiffScope ?? DEFAULT_DIFF_SCOPE;
     }
     const storedValue = window.localStorage.getItem(DIFF_SCOPE_STORAGE_KEY);
-    return storedValue === "session" || storedValue === "git" ? storedValue : DEFAULT_DIFF_SCOPE;
+    return storedValue === "session" || storedValue === "git"
+      ? storedValue
+      : settings.defaultDiffScope ?? DEFAULT_DIFF_SCOPE;
   });
   const [diffRenderMode, setDiffRenderMode] = useState<DiffRenderMode>("stacked");
   const [diffWordWrap, setDiffWordWrap] = useState(settings.diffWordWrap);
@@ -272,7 +274,7 @@ export default function DiffPanel({ mode = "inline" }: DiffPanelProps) {
   // const [collapsedFileKeys, setCollapsedFileKeys] = useState<Set<string>>(() => new Set());
   const diffSearch = useSearch({ strict: false, select: (search) => parseDiffRouteSearch(search) });
   const diffOpen = diffSearch.diff === "1";
-  const diffScope = diffSearch.diffScope ?? rememberedDiffScope;
+  const diffScope: DiffScope = diffSearch.diffScope ?? rememberedDiffScope;
   const isSessionDiffScope = diffScope === "session";
   const activeThreadId = routeThreadRef?.threadId ?? null;
   const activeThread = useStore(
@@ -777,7 +779,7 @@ export default function DiffPanel({ mode = "inline" }: DiffPanelProps) {
           className="shrink-0"
           variant="outline"
           size="xs"
-          value={[diffScope]}
+          value={[diffScope ?? "git"]}
           onValueChange={(value) => {
             const next = value[0];
             if (next === "session" || next === "git") {
