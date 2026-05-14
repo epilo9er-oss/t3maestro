@@ -1135,10 +1135,35 @@ export default function ChatView(props: ChatViewProps) {
     [openOrReuseProjectDraftThread],
   );
 
+  // Keep refs for focus handler to avoid re-registering listener on every change
+  const completedAtRef = useRef(activeLatestTurn?.completedAt);
+  const lastVisitedAtRef = useRef(activeThreadLastVisitedAt);
+  const threadRefRef = useRef(
+    serverThread ? scopeThreadRef(serverThread.environmentId, serverThread.id) : null,
+  );
+
+  // Update refs when values change
+  useEffect(() => {
+    completedAtRef.current = activeLatestTurn?.completedAt;
+  }, [activeLatestTurn?.completedAt]);
+
+  useEffect(() => {
+    lastVisitedAtRef.current = activeThreadLastVisitedAt;
+  }, [activeThreadLastVisitedAt]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only ref properties are needed
+  useEffect(() => {
+    threadRefRef.current = serverThread
+      ? scopeThreadRef(serverThread.environmentId, serverThread.id)
+      : null;
+  }, [serverThread?.environmentId, serverThread?.id]);
+
   useEffect(() => {
     if (!serverThread?.id) return;
     if (!latestTurnSettled) return;
     if (!activeLatestTurn?.completedAt) return;
+    // Only mark as visited if the user is actually viewing the app (has focus)
+    if (typeof document !== "undefined" && !document.hasFocus()) return;
     const turnCompletedAt = Date.parse(activeLatestTurn.completedAt);
     if (Number.isNaN(turnCompletedAt)) return;
     const lastVisitedAt = activeThreadLastVisitedAt ? Date.parse(activeThreadLastVisitedAt) : NaN;
@@ -1156,6 +1181,29 @@ export default function ChatView(props: ChatViewProps) {
     serverThread?.environmentId,
     serverThread?.id,
   ]);
+
+  // When user returns to the app (gains focus), mark completed thread as visited
+  // Uses refs to avoid re-registering listener on every completedAt change
+  useEffect(() => {
+    if (!serverThread?.id) return;
+
+    const handleFocus = () => {
+      const completedAt = completedAtRef.current;
+      const threadRef = threadRefRef.current;
+      if (!completedAt || !threadRef) return;
+
+      const turnCompletedAt = Date.parse(completedAt);
+      if (Number.isNaN(turnCompletedAt)) return;
+      const lastVisitedAt = lastVisitedAtRef.current ? Date.parse(lastVisitedAtRef.current) : NaN;
+      // Only mark as visited if not already visited after completion
+      if (!Number.isNaN(lastVisitedAt) && lastVisitedAt >= turnCompletedAt) return;
+
+      markThreadVisited(scopedThreadKey(threadRef), completedAt);
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [markThreadVisited, serverThread?.id]);
 
   const selectedProviderByThreadId = composerActiveProvider ?? null;
   const threadProvider =

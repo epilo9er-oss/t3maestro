@@ -178,6 +178,7 @@ import { useCopyToClipboard } from "~/hooks/useCopyToClipboard";
 import { CommandDialogTrigger } from "./ui/command";
 import { readEnvironmentApi } from "../environmentApi";
 import { useSettings, useUpdateSettings } from "~/hooks/useSettings";
+import { useLocalNotification } from "~/hooks/useLocalNotification";
 import { useServerKeybindings } from "../rpc/serverState";
 import {
   derivePhysicalProjectKey,
@@ -3412,6 +3413,73 @@ export default function Sidebar() {
       return next;
     });
   }, []);
+
+  const threadLastVisitedAtById = useUiStateStore((store) => store.threadLastVisitedAtById);
+  const notificationSound = useSettings((s) => s.notificationSound);
+  const notificationsEnabled = useSettings((s) => s.notificationsEnabled);
+  const { showThreadCompletion } = useLocalNotification();
+  const completedThreadKeysRef = useRef<ReadonlySet<string>>(new Set());
+  const isInitializedRef = useRef(false);
+
+  useEffect(() => {
+    const currentCompletedKeys = new Set<string>();
+
+    for (const thread of sidebarThreads) {
+      const threadKey = scopedThreadKey(scopeThreadRef(thread.environmentId, thread.id));
+      const threadStatusInput = {
+        hasActionableProposedPlan: thread.hasActionableProposedPlan ?? false,
+        hasPendingApprovals: thread.hasPendingApprovals ?? false,
+        hasPendingUserInput: thread.hasPendingUserInput ?? false,
+        interactionMode: thread.interactionMode,
+        latestTurn: thread.latestTurn,
+        session: thread.session,
+        lastVisitedAt: threadLastVisitedAtById[threadKey],
+      };
+
+      // Reuse resolveThreadStatusPill to check completion status
+      const statusPill = resolveThreadStatusPill({ thread: threadStatusInput });
+      const isNowCompleted = statusPill?.label === "Completed";
+
+      const wasPreviouslyCompleted = completedThreadKeysRef.current.has(threadKey);
+
+      if (isNowCompleted && !wasPreviouslyCompleted) {
+        // Only notify after initialization (skip first load to prevent barrage)
+        if (!isInitializedRef.current) {
+          // First load: just track completed threads, don't notify
+        } else {
+          const threadTitle = thread.title ?? "Your task is complete";
+
+          // TODO: Remove type cast once toast type definition is updated to include data.threadRef and data.dismissAfterVisibleMs
+          toastManager.add({
+            type: "success",
+            title: "Thread completed",
+            description: threadTitle,
+            data: {
+              threadRef: scopeThreadRef(thread.environmentId, thread.id),
+              dismissAfterVisibleMs: 5000,
+            },
+          } as Parameters<typeof toastManager.add>[0]);
+
+          if (notificationsEnabled) {
+            showThreadCompletion(threadTitle, notificationSound);
+          }
+        }
+      }
+
+      if (isNowCompleted) {
+        currentCompletedKeys.add(threadKey);
+      }
+    }
+
+    completedThreadKeysRef.current = currentCompletedKeys;
+    isInitializedRef.current = true;
+  }, [
+    sidebarThreads,
+    threadLastVisitedAtById,
+    notificationSound,
+    notificationsEnabled,
+    showThreadCompletion,
+  ]);
 
   return (
     <>
