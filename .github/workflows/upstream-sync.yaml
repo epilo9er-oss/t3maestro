@@ -1,0 +1,86 @@
+# name: Upstream Sync
+
+# on:
+#   schedule:
+#     # 매일 한국 시간(KST) 새벽 4시(UTC 19:00)에 자동으로 싱크를 맞춥니다.
+#     - cron: '0 19 * * *'
+#   workflow_dispatch: # 수동 실행 버튼 활성화
+#     inputs:
+#       sync_test_mode: # 👈 A-1. 수동 실행할 때 체크박스를 띄웁니다.
+#         description: 'Dry run mode: true로 설정하면 가상 실행만 하고 실제 싱크는 하지 않습니다.'
+#         type: boolean
+#         default: false
+
+# # GITHUB_TOKEN으로 main 브랜치에 push할 수 있도록 권한 부여
+# permissions:
+#   contents: write
+
+# jobs:
+#   sync_latest_from_upstream:
+#     name: Sync upstream main → fork main
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     # 1단계: 내 Fork 저장소의 'main' 브랜치를 체크아웃합니다. (★여기가 중요합니다★)
+#     - name: Checkout target branch
+#       uses: actions/checkout@v4
+#       with:
+#         ref: main # 👈 내 포크의 main 브랜치를 기준으로 가져옵니다.
+#         fetch-depth: 0
+#         # REQUIRED if your upstream repo is private (see wiki)
+#         # persist-credentials: false
+
+#     # 2단계: 원본의 main을 내 포크의 main으로 싱크합니다.
+#     - name: Sync upstream changes
+#       id: sync
+#       uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+#       with:
+#         target_sync_branch: main        # 👈 내 포크에서 업데이트할 브랜치
+#         target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+#         upstream_sync_branch: main      # 👈 원본(Upstream)의 대상 브랜치
+#         upstream_sync_repo: mem0ai/mem0 # 👈 원본 저장소 주소
+#         # 👈 A-2. 체크박스가 켜져 있으면(true) 가상 실행만 하고, 꺼져 있으면(false) 진짜 싱크를 합니다.
+#         test_mode: ${{ inputs.sync_test_mode }}
+
+#     # 3단계: 싱크 결과에 따른 조건별 분기 처리 (공식 샘플 정석 로직)
+#     - name: Sync Success Check
+#       if: steps.sync.outputs.has_new_commits == 'true'
+#       run: echo "🎉 새로운 커밋이 발견되어 성공적으로 싱크되었습니다!"
+
+#     - name: Already Up to Date Check
+#       if: steps.sync.outputs.has_new_commits == 'false'
+#       run: echo "✨ 이미 최신 상태입니다. 업데이트할 커밋이 없습니다."
+
+#     # 디버깅용 (초기 몇 번 실행 후 삭제 가능)
+#     - name: Show sync result
+#       run: |
+#         echo "has_new_commits = ${{ steps.sync.outputs.has_new_commits }}"
+
+name: Upstream Sync
+
+on:
+  # 매일 한국 시간(KST) 새벽 4시 실행
+  schedule:
+    - cron: '0 19 * * *'
+
+  # GitHub Actions 화면에서 수동 실행 가능
+  workflow_dispatch:
+
+# GITHUB_TOKEN이 브랜치를 업데이트할 수 있도록 권한 부여
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync fork with upstream
+    runs-on: ubuntu-latest
+
+    steps:
+      # GitHub CLI를 이용하여
+      # Fork 저장소의 main 브랜치를
+      # Upstream 저장소의 main 브랜치와 동기화
+      - name: Sync upstream with GitHub CLI
+        run: |
+          gh repo sync ${{ github.repository }} -b main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
